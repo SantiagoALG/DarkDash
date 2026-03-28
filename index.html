@@ -1763,16 +1763,16 @@ const IVA      = 0.16; // IVA aplicado a honorarios
 function getEmployeeAssignedHrs(empId) {
   let hrs = 0;
   projects.forEach(p => {
-    // Producción
     const a = (p.assignments||[]).find(x => x.empId === empId);
     if (a) hrs += (a.hrs || 0);
-    // Juntas: si el empleado está en la lista de afectados
+    // Each member attends ALL juntas hours — no division
     if (p.juntas && p.juntas.hrs > 0 && (p.juntas.members||[]).includes(empId)) {
-      // Distribuir hrs de junta equitativamente entre los miembros afectados
-      const n = (p.juntas.members||[]).length;
-      if (n > 0) hrs += p.juntas.hrs / n;
+      hrs += p.juntas.hrs;
     }
   });
+  // Corporate/operational hours
+  const emp = employees.find(e => e.id === empId);
+  if (emp && emp.corpHrs) hrs += emp.corpHrs;
   return hrs;
 }
 
@@ -2337,7 +2337,7 @@ function buildEmpHoursChart(emp) {
   }).join('');
 
   return '<div style="display:flex;gap:20px;align-items:flex-start;padding:4px 0">'
-    + '<div style="flex:1"><div class="emp-hours-chart-title">Distribución de horas</div>' + bars + '</div>'
+    + '<div style="flex:1">' + bars + '</div>'
     + '<div style="flex-shrink:0;text-align:center">'
     + '<svg width="64" height="64" viewBox="0 0 64 64" style="transform:rotate(-90deg)">'
     + '<circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/>'
