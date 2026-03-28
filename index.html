@@ -8,27 +8,27 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* ── EDITORIAL DARK ── */
-  --ink:       #f0ebe3;          /* warm ivory — readable, not harsh white */
-  --ink-mid:   #9e9690;          /* warm mid-grey */
-  --ink-soft:  #5c5752;          /* muted warm grey */
-  --paper:     #111010;          /* near-black, warm undertone */
-  --paper-2:   #191817;          /* card surface */
-  --paper-3:   #242220;          /* borders, dividers */
-  --accent:    #c8972a;          /* ALG gold — the one accent */
-  --accent-2:  #c0392b;          /* deep red for negatives */
+  /* ── ALG DASHBOARD ── */
+  --ink:       #ffffff;
+  --ink-mid:   #a0a0a0;
+  --ink-soft:  #555555;
+  --paper:     #000000;          /* fondo puro */
+  --paper-2:   #0d0f14;          /* surface de cards */
+  --paper-3:   #1a1d24;          /* bordes, dividers */
+  --accent:    #c8972a;          /* ALG gold */
+  --accent-2:  #e53935;          /* rojo financiero */
   --gold:      #c8972a;
-  --green:     #2e7d4f;          /* muted forest green */
-  --green-bg:  rgba(46,125,79,.12);
-  --red-bg:    rgba(192,57,43,.12);
-  --amber:     #b07d2a;          /* darker gold for secondary accents */
-  --amber-bg:  rgba(176,125,42,.12);
+  --green:     #26a65b;          /* verde financiero */
+  --green-bg:  rgba(38,166,91,.12);
+  --red-bg:    rgba(229,57,53,.12);
+  --amber:     #c8972a;
+  --amber-bg:  rgba(200,151,42,.12);
   --mono:      'DM Mono', monospace;
   --sans:      'Monument Grotesk', sans-serif;
   --radius:    3px;
-  --shadow:    0 1px 0 rgba(255,255,255,.04), 0 4px 20px rgba(0,0,0,.5);
-  --shadow-lg: 0 1px 0 rgba(255,255,255,.04), 0 12px 48px rgba(0,0,0,.7);
-  --rule:      rgba(255,255,255,.07);  /* subtle dividing lines */
+  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 4px 20px rgba(0,0,0,.6);
+  --shadow-lg: 0 1px 0 rgba(255,255,255,.03), 0 12px 48px rgba(0,0,0,.8);
+  --rule:      rgba(255,255,255,.08);
   --cap:       120;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,7 +43,10 @@ body {
 
 /* ── HEADER ── */
 header {
-  background: var(--ink); padding: 0 40px;
+  background: #090b10;
+  border-bottom: 1px solid var(--rule);
+  box-shadow: 0 1px 0 rgba(200,151,42,.3);
+  padding: 0 40px;
   display: flex; align-items: center; justify-content: space-between;
   height: 60px; position: sticky; top: 0; z-index: 100;
 }
@@ -95,9 +98,9 @@ header nav button.active, header nav button:hover {
   font-family: var(--mono); font-size: 1.9rem; font-weight: 400;
   color: var(--ink); line-height: 1; letter-spacing: -.02em;
 }
-.kpi-val.green { color: #4a9e6a; }
+.kpi-val.green { color: #26a65b; }
 .kpi-val.gold  { color: var(--gold); }
-.kpi-val.red   { color: var(--accent-2); }
+.kpi-val.red   { color: #e53935; }
 .kpi-sub { font-size: .68rem; color: var(--ink-soft); font-family: var(--mono); }
 .kpi-bar { height: 1px; background: var(--rule); margin-top: 8px; overflow: hidden; }
 .kpi-bar-fill { height: 100%; transition: width .6s ease; }
@@ -149,9 +152,9 @@ header nav button.active, header nav button:hover {
   padding: 2px 8px; border-radius: var(--radius);
   letter-spacing: .06em; text-transform: uppercase;
 }
-.badge.ok     { background: rgba(46,125,79,.2);  color: #5db37e; }
-.badge.warn   { background: rgba(176,125,42,.2); color: var(--gold); }
-.badge.over   { background: rgba(192,57,43,.2);  color: #e05c4a; }
+.badge.ok     { background: rgba(38,166,91,.15);  color: #26a65b; }
+.badge.warn   { background: rgba(200,151,42,.15); color: var(--gold); }
+.badge.over   { background: rgba(229,57,53,.15);  color: #e53935; }
 .badge.idle   { background: rgba(255,255,255,.06); color: var(--ink-soft); }
 .badge.fixed  { background: rgba(200,151,42,.15); color: var(--gold); }
 .badge.oneshot{ background: rgba(255,255,255,.06); color: var(--ink-mid); }
@@ -453,7 +456,7 @@ header nav button.active, header nav button:hover {
 .profit-row { margin-bottom:14px; }
 .profit-name { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
 .profit-bar-wrap { position:relative; height:8px; background:var(--paper-3); border-radius:4px; overflow:hidden; }
-.profit-bar-income { position:absolute; left:0; top:0; height:100%; background:#4a9e6a; border-radius:2px; transition:width .4s; }
+.profit-bar-income { position:absolute; left:0; top:0; height:100%; background:#26a65b; border-radius:2px; transition:width .4s; }
 .profit-bar-cost   { position:absolute; left:0; top:0; height:100%; background:var(--accent-2); opacity:.5; border-radius:2px; transition:width .4s; }
 
 /* EDIT EMPLOYEE MODAL */
@@ -490,10 +493,10 @@ header nav button.active, header nav button:hover {
   display:inline-block; font-size:.68rem; font-weight:700; padding:2px 9px;
   border-radius:20px; letter-spacing:.03em;
 }
-.cat-suscripcion { background:rgba(90,120,180,.15); color:#6b8bbf; }
-.cat-servicios   { background:rgba(130,90,160,.15); color:#826690; }
-.cat-renta       { background:rgba(200,151,42,.15);  color:var(--gold); }
-.cat-varios      { background:rgba(255,255,255,.06); color:var(--ink-soft); }
+.cat-suscripcion { background:rgba(100,140,220,.12); color:#6490dc; }
+.cat-servicios   { background:rgba(140,90,180,.12);  color:#8c5ab4; }
+.cat-renta       { background:rgba(200,151,42,.12);  color:var(--gold); }
+.cat-varios      { background:rgba(255,255,255,.05); color:var(--ink-soft); }
 
 /* PROJECTION PANEL */
 .proj-panel {
@@ -1435,7 +1438,7 @@ function showSyncStatus(state, msg='') {
   if (!el) return;
   const states = {
     syncing: { icon:'⟳', color:'rgba(255,255,255,.5)', text:'Sincronizando…' },
-    ok:      { icon:'✓', color:'#4a9e6a',              text:'Guardado'       },
+    ok:      { icon:'✓', color:'#26a65b',              text:'Guardado'       },
     error:   { icon:'✕', color:'#f87171',              text:'Error: '+msg    },
     offline: { icon:'◌', color:'rgba(255,255,255,.3)', text:'Sin Supabase'   },
   };
@@ -1464,14 +1467,14 @@ let _pqAssignRows   = [];
 
 // Avatar color palette — distinct, readable on dark bg
 const AVATAR_COLORS = [
-  { bg:'rgba(200,151,42,.18)', color:'#c8972a' },  // gold
-  { bg:'rgba(74,158,106,.18)', color:'#4a9e6a' },  // green
-  { bg:'rgba(192,57,43,.18)',  color:'#c0392b' },  // red
-  { bg:'rgba(90,120,180,.18)', color:'#6b8bbf' },  // blue-grey
-  { bg:'rgba(160,100,60,.18)', color:'#a0643c' },  // terracotta
-  { bg:'rgba(130,90,160,.18)', color:'#826690' },  // muted violet
-  { bg:'rgba(80,140,130,.18)', color:'#508c82' },  // teal
-  { bg:'rgba(170,130,80,.18)', color:'#aa8250' },  // warm sand
+  { bg:'rgba(200,151,42,.15)', color:'#c8972a' },
+  { bg:'rgba(38,166,91,.15)',  color:'#26a65b' },
+  { bg:'rgba(229,57,53,.15)',  color:'#e53935' },
+  { bg:'rgba(100,140,220,.15)',color:'#6490dc' },
+  { bg:'rgba(180,100,60,.15)', color:'#b4643c' },
+  { bg:'rgba(140,90,180,.15)', color:'#8c5ab4' },
+  { bg:'rgba(60,160,160,.15)', color:'#3ca0a0' },
+  { bg:'rgba(200,170,80,.15)', color:'#c8aa50' },
 ];
 
 function getAvatarStyle(name='') {
