@@ -1659,11 +1659,9 @@ function getEmployeeAssignedHrs(empId) {
     // Producción
     const a = (p.assignments||[]).find(x => x.empId === empId);
     if (a) hrs += (a.hrs || 0);
-    // Juntas: si el empleado está en la lista de afectados
+    // Juntas: cada miembro afectado asiste a TODAS las horas de junta
     if (p.juntas && p.juntas.hrs > 0 && (p.juntas.members||[]).includes(empId)) {
-      // Distribuir hrs de junta equitativamente entre los miembros afectados
-      const n = (p.juntas.members||[]).length;
-      if (n > 0) hrs += p.juntas.hrs / n;
+      hrs += p.juntas.hrs;
     }
   });
   return hrs;
@@ -2199,8 +2197,7 @@ function buildEmpHoursChart(emp) {
     const prodHrs = a ? (a.hrs||0) : 0;
     let juntasHrs = 0;
     if (p.juntas && p.juntas.hrs > 0 && (p.juntas.members||[]).includes(emp.id)) {
-      const n = (p.juntas.members||[]).length;
-      if (n > 0) juntasHrs = p.juntas.hrs / n;
+      juntasHrs = p.juntas.hrs;
     }
     const total = prodHrs + juntasHrs;
     if (total > 0) rows.push({ proj:p, prodHrs, juntasHrs, total });
