@@ -621,6 +621,36 @@ header nav button.active, header nav button:hover {
 #pipeline-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.05); font-size:.82rem; vertical-align:middle; }
 #pipeline-table tr:hover td { background:rgba(255,255,255,.03); }
 
+
+/* ── PROJECT CARDS GRID ── */
+.proj-cards-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.proj-card {
+  background:var(--glass); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border); border-radius:var(--radius); box-shadow:var(--shadow);
+  overflow:hidden; cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s;
+  position:relative; animation:fadeUp .28s cubic-bezier(.34,1.56,.64,1) both;
+}
+.proj-card::before { content:''; position:absolute; inset:0; background:var(--glass-shine); border-radius:inherit; pointer-events:none; z-index:0; }
+.proj-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:rgba(255,255,255,.2); }
+.proj-card-top { height:4px; width:100%; position:relative; z-index:1; }
+.proj-card-body { padding:18px 20px; position:relative; z-index:1; }
+.proj-card-name { font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.proj-card-client { font-size:.72rem; color:var(--ink-soft); margin-bottom:14px; font-family:var(--mono); }
+.proj-card-kpis { display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid rgba(255,255,255,.07); border-radius:8px; overflow:hidden; margin-bottom:14px; }
+.proj-card-kpi { padding:10px 12px; border-right:1px solid rgba(255,255,255,.07); border-bottom:1px solid rgba(255,255,255,.07); }
+.proj-card-kpi:nth-child(2n) { border-right:none; }
+.proj-card-kpi:nth-child(3), .proj-card-kpi:nth-child(4) { border-bottom:none; }
+.proj-card-kpi-label { font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); margin-bottom:4px; }
+.proj-card-kpi-val { font-family:var(--mono); font-size:.95rem; font-weight:500; color:var(--ink); }
+.proj-card-footer { display:flex; align-items:center; justify-content:space-between; padding-top:12px; border-top:1px solid rgba(255,255,255,.06); }
+/* ── EMPLOYEE HOURS CHART ── */
+.emp-hours-chart-title { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); margin-bottom:10px; }
+.emp-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+.emp-bar-proj-name { font-size:.73rem; color:var(--ink-mid); min-width:110px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.emp-bar-track { flex:1; height:7px; background:rgba(255,255,255,.07); border-radius:4px; overflow:hidden; position:relative; }
+.emp-bar-fill { height:100%; border-radius:4px; transition:width .5s cubic-bezier(.4,0,.2,1); }
+.emp-bar-hrs { font-family:var(--mono); font-size:.65rem; color:var(--ink-soft); min-width:32px; text-align:right; flex-shrink:0; }
+
 /* UTIL */
 .mono { font-family: var(--mono); }
 input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -826,9 +856,12 @@ select { cursor: pointer; }
           <tr>
             <th>Nombre</th>
             <th class="r">Honorarios/mes</th>
-            <th class="r">Hrs asignadas</th>
-            <th class="r">% Ocupación</th>
+            <th class="r">Hrs proyecto</th>
+            <th class="r">Hrs corp.</th>
+            <th class="r">Total / Cap.</th>
+            <th class="r">% Ocup.</th>
             <th>Estado</th>
+            <th class="r">Con IVA</th>
             <th style="width:60px"></th>
           </tr>
         </thead>
@@ -2248,186 +2281,131 @@ function renderPayrollBreakdown() {
 }
 
 // ── PROJECTS VIEW ──────────────────────
-function renderProjects() {
-  const list   = document.getElementById('projects-list');
-  const empty  = document.getElementById('proj-empty');
-  const count  = document.getElementById('proj-count');
-  count.textContent = projects.length ? `(${projects.length})` : '';
 
-  if (!projects.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+// ── EMPLOYEE HOURS CHART ──────────────────────────────────────────────────
+function buildEmpHoursChart(emp) {
+  const totalHrs = getEmployeeAssignedHrs(emp.id);
+  if (totalHrs === 0) {
+    return '<div style="font-size:.72rem;color:var(--ink-soft);padding:6px 0">Sin horas asignadas este mes.</div>';
+  }
+  const rows = [];
+  if (emp.corpHrs > 0) {
+    rows.push({ label:'Corporativo / Operacional', color:'#606880', prodHrs:emp.corpHrs, juntasHrs:0, total:emp.corpHrs, isCorp:true });
+  }
+  projects.forEach(p => {
+    const a = (p.assignments||[]).find(x => x.empId === emp.id);
+    const prodHrs = a ? (a.hrs||0) : 0;
+    let juntasHrs = 0;
+    if (p.juntas && p.juntas.hrs > 0 && (p.juntas.members||[]).includes(emp.id)) {
+      juntasHrs = p.juntas.hrs;
+    }
+    const total = prodHrs + juntasHrs;
+    if (total > 0) rows.push({ label:p.name, color:p.color, prodHrs, juntasHrs, total, isCorp:false });
+  });
+
+  if (!rows.length) return '<div style="font-size:.72rem;color:var(--ink-soft);padding:6px 0">Sin proyectos asignados.</div>';
+
+  const maxH   = Math.max(...rows.map(r => r.total));
+  const capPct = Math.min(totalHrs/CAP*100,100).toFixed(0);
+  const capClr = totalHrs > CAP_MAX ? '#ef4444' : totalHrs > CAP ? '#f4b740' : '#4ade80';
+  const circ   = 2 * Math.PI * 24;
+  const filled = Math.min(totalHrs/CAP,1) * circ;
+
+  const bars = rows.map(r => {
+    const pct  = maxH > 0 ? (r.total/maxH*100).toFixed(1) : 0;
+    const dot  = r.isCorp
+      ? 'display:inline-block;width:7px;height:7px;border-radius:2px;background:' + r.color + ';margin-right:5px;vertical-align:middle'
+      : 'display:inline-block;width:7px;height:7px;border-radius:50%;background:' + r.color + ';margin-right:5px;vertical-align:middle';
+    return '<div class="emp-bar-row">'
+      + '<div class="emp-bar-proj-name" title="' + r.label + '"><span style="' + dot + '"></span>' + r.label + '</div>'
+      + '<div class="emp-bar-track"><div class="emp-bar-fill" style="width:' + pct + '%;background:' + r.color + ';opacity:' + (r.isCorp?'.5':'.85') + '"></div></div>'
+      + '<div class="emp-bar-hrs">' + r.total.toFixed(0) + 'h</div>'
+      + '</div>';
+  }).join('');
+
+  return '<div style="display:flex;gap:20px;align-items:flex-start;padding:4px 0">'
+    + '<div style="flex:1"><div class="emp-hours-chart-title">Distribución de horas</div>' + bars + '</div>'
+    + '<div style="flex-shrink:0;text-align:center">'
+    + '<svg width="64" height="64" viewBox="0 0 64 64" style="transform:rotate(-90deg)">'
+    + '<circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/>'
+    + '<circle cx="32" cy="32" r="24" fill="none" stroke="' + capClr + '" stroke-width="7" stroke-linecap="round"'
+    + ' stroke-dasharray="' + circ.toFixed(1) + '" stroke-dashoffset="' + (circ-filled).toFixed(1) + '"/>'
+    + '</svg>'
+    + '<div style="margin-top:-48px;margin-bottom:40px;font-family:var(--mono);font-size:.82rem;font-weight:700;color:' + capClr + '">' + capPct + '%</div>'
+    + '<div style="font-size:.6rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em">' + totalHrs.toFixed(0) + '/' + CAP + ' hrs</div>'
+    + '</div></div>';
+}
+
+function renderProjects() {
+  const list  = document.getElementById('projects-list');
+  const empty = document.getElementById('proj-empty');
+  const count = document.getElementById('proj-count');
+  count.textContent = projects.length ? '(' + projects.length + ')' : '';
+
+  if (!projects.length) {
+    list.innerHTML = ''; list.className = '';
+    empty.style.display = 'block'; return;
+  }
   empty.style.display = 'none';
+  list.className = 'proj-cards-grid';
 
   list.innerHTML = projects.map(p => {
-    const hrs    = getProjectHrs(p);
-    const st     = capStatus(hrs / (employees.length * CAP || 1));
-    const assignHTML = (p.assignments||[]).map(a => {
-      const emp = employees.find(e => e.id === a.empId);
-      if (!emp) return '';
-      const h   = a.hrs || 0;
-      const pct = CAP > 0 ? (h / CAP * 100).toFixed(0) : 0;
-      const hasBd = a.breakdown && a.breakdown.length > 0;
-      const empForCost = employees.find(e => e.id === a.empId);
-      const empRateForDetail = empForCost ? (empForCost.salary||0)/CAP : 0;
-      const bdDetail = hasBd ? `<div style="margin:4px 0 2px 20px">
-        <div style="display:grid;grid-template-columns:auto 1fr repeat(3,70px);gap:0;border:1px solid var(--paper-3);border-radius:4px;overflow:hidden;margin-bottom:2px">
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);border-right:1px solid var(--paper-3)">Tipo</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);border-right:1px solid var(--paper-3)">Actividad</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);text-align:right;border-right:1px solid var(--paper-3)">Hrs</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);text-align:right;border-right:1px solid var(--paper-3)">C.Dir</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);text-align:right">C.Total</div>
-        </div>
-        ${a.breakdown.map(b=>{
-          const calc  = calcHrCost(b.hrs||0, empRateForDetail, getEmpOverhead(empForCost), getEmpUtil(empForCost));
-          const isJ   = false; // juntas now in separate block
-          return `<div style="display:grid;grid-template-columns:auto 1fr repeat(3,70px);gap:0;border:1px solid var(--paper-3);border-top:none;border-radius:0;overflow:hidden">
-            <div style="padding:4px 6px;border-right:1px solid var(--paper-2);display:flex;align-items:center">
-              <span style="font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;
-                background:${isJ?'rgba(180,83,9,.1)':'rgba(26,58,143,.07)'};
-                color:${isJ?'var(--amber)':'var(--accent)'};
-                border:1px solid ${isJ?'rgba(180,83,9,.25)':'rgba(26,58,143,.15)'}">
-                ${isJ?'⏱ Junta':'⚙ Prod'}
-              </span>
-            </div>
-            <div style="padding:4px 6px;font-size:.72rem;color:var(--ink-mid);border-right:1px solid var(--paper-2)">${b.desc||'—'}</div>
-            <div style="padding:4px 6px;font-family:var(--mono);font-size:.7rem;text-align:right;border-right:1px solid var(--paper-2)">${(b.hrs||0).toFixed(1)}</div>
-            <div style="padding:4px 6px;font-family:var(--mono);font-size:.7rem;color:var(--ink-soft);text-align:right;border-right:1px solid var(--paper-2)">${fmt(calc.costoDir)}</div>
-            <div style="padding:4px 6px;font-family:var(--mono);font-size:.7rem;font-weight:600;text-align:right">${fmt(calc.costoTotal)}</div>
-          </div>`;
-        }).join('')}
-      </div>` : '';
-      return `<div style="padding:5px 0;border-bottom:1px solid var(--paper-2)">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="dot" style="background:${p.color}"></div>
-            <span style="font-size:.82rem;font-weight:600">${emp.name}</span>
-            <span style="font-size:.72rem;color:var(--ink-soft)">${emp.role||''}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-family:var(--mono);font-size:.78rem;color:var(--ink-soft)">${h.toFixed(0)} hrs</span>
-            <span class="badge ok">${pct}% cap.</span>
-          </div>
-        </div>
-        ${bdDetail}
-      </div>`;
+    const inc      = incomeInMXN(p) * (1 + IVA);
+    const teamCost = getProjectTeamCost(p) * (1 + IVA);
+    const vendCost = vendors.filter(v=>v.projectId===p.id&&isVendorActive(v)).reduce((s,v)=>s+(v.cost||0),0);
+    const margin   = inc - teamCost - vendCost;
+    const mPct     = inc > 0 ? (margin/inc*100).toFixed(1) : '—';
+    const mColor   = margin >= 0 ? 'var(--green)' : 'var(--accent-2)';
+    const totalHrs = getProjectHrs(p);
+    const empCount = (p.assignments||[]).length;
+    const typeLbl  = p.type === 'iguala' ? 'Iguala' : 'Único';
+    const typeCls  = p.type === 'iguala' ? 'fixed'  : 'oneshot';
+
+    const assignedEmps = (p.assignments||[])
+      .map(a => employees.find(e=>e.id===a.empId)).filter(Boolean).slice(0,4);
+    const avatarStack = assignedEmps.map(e => {
+      const av = getAvatarStyle(e.name);
+      const ini = e.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      return '<div class="avatar" style="background:' + av.bg + ';color:' + av.color + ';border-color:' + av.color + '30;width:22px;height:22px;font-size:.5rem;margin-left:-6px;border:1.5px solid rgba(255,255,255,.15)">' + ini + '</div>';
     }).join('');
+    const moreCount = (p.assignments||[]).length - 4;
 
-    const projVendors = vendors.filter(v => v.projectId === p.id && isVendorActive(v));
-    const allProjVendors = vendors.filter(v => v.projectId === p.id);
-    const vendorHTML = allProjVendors.length ? allProjVendors.map(v => {
-      const vActive = isVendorActive(v);
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--paper-2);opacity:${vActive?1:.45}">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:.9rem">📦</span>
-          <span style="font-size:.82rem">${v.name}</span>
-          ${!vActive ? '<span style="font-size:.65rem;background:var(--paper-2);color:var(--ink-soft);padding:1px 6px;border-radius:10px">⏸ Inactivo este mes</span>' : ''}
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-family:var(--mono);font-size:.78rem;color:var(--accent-2)">${vActive?'Costo: '+fmt(v.cost):'—'}</span>
-          <span style="font-family:var(--mono);font-size:.78rem;color:var(--green)">${vActive?'Cobro: '+fmt(v.charge):'—'}</span>
-        </div>
-      </div>`;
-    }).join('') : '';
-
-    const teamCost = getProjectTeamCost(p);
-    const teamCostIva  = teamCost * (1 + IVA);   // costo real pagado (con IVA)
-    const vendorCostP  = projVendors.reduce((s,v) => s + (v.cost||0), 0);
-    const totalCostP   = teamCostIva + vendorCostP;
-    // Ingreso: en MXN + IVA cobrado al cliente
-    const incomeMXN    = incomeInMXN(p);
-    const incomeConIva = incomeMXN * (1 + IVA);
-    const marginP      = incomeConIva - totalCostP;
-    const marginPctP   = incomeConIva > 0 ? (marginP / incomeConIva * 100).toFixed(1) : '—';
-
-    return `<div class="list-card" id="proj-card-${p.id}">
-      <div class="list-card-header" onclick="toggleCard('proj-card-${p.id}')">
-        <div class="toggle-icon">+</div>
-        <div class="dot" style="background:${p.color}"></div>
-        <span class="list-card-name">${p.name}</span>
-        <span style="font-size:.78rem;color:var(--ink-soft);margin-right:8px">${p.client||''}</span>
-        ${p._fromCotizador ? '<span class="badge ok" style="font-size:.62rem;flex-shrink:0">📋 Cotizador</span>' : ''}
-        <span class="badge ${p.type==='iguala'?'fixed':'oneshot'}">${p.type==='iguala'?'Iguala':'Único'}</span>
-        <span style="font-family:var(--mono);font-size:.85rem;font-weight:600;color:var(--green);margin-left:auto">
-          ${p.currency==='USD' ? fmtUSD(p.income||0) : fmt(incomeInMXN(p))}${p.type==='iguala'?'/mes':''}
-        </span>
-        <div style="display:flex;gap:6px;margin-left:16px">
-          <button class="btn-add outline" style="font-size:.72rem;padding:5px 12px" onclick="event.stopPropagation();editProject(${p.id})">✏ Editar</button>
-          <button class="btn-add outline" style="font-size:.72rem;padding:5px 12px;color:var(--accent-2);border-color:rgba(232,49,42,.3)" onclick="event.stopPropagation();deleteProject(${p.id})">✕</button>
-        </div>
-      </div>
-      <div class="list-card-body">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px">
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">${p.type==='iguala'?'Ingreso / mes':'Ingreso proyecto'}</div>
-            <div style="font-family:var(--mono);font-size:.95rem;color:var(--green);font-weight:600">
-              ${p.currency==='USD' ? fmtUSD(p.income||0) : fmt(incomeMXN)}
-            </div>
-            <div style="font-size:.68rem;color:var(--ink-soft)">
-              + IVA: <span style="font-family:var(--mono);color:var(--green)">${fmt(incomeConIva)}</span>
-              ${p.currency==='USD' ? `<br>≈ ${fmt(incomeMXN)} MXN` : ''}
-            </div>
-          </div>
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">Costo equipo + IVA</div>
-            <div style="font-family:var(--mono);font-size:.95rem;font-weight:600">${fmt(teamCostIva)}</div>
-            <div style="font-size:.68rem;color:var(--ink-soft)">Base: <span style="font-family:var(--mono)">${fmt(teamCost)}</span></div>
-          </div>
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">Costo total</div>
-            <div style="font-family:var(--mono);font-size:.95rem;font-weight:600">${fmt(totalCostP)}</div>
-            ${vendorCostP > 0 ? `<div style="font-size:.68rem;color:var(--ink-soft)">Proveedores: <span style="font-family:var(--mono)">${fmt(vendorCostP)}</span></div>` : ''}
-          </div>
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">Margen bruto</div>
-            <div style="font-family:var(--mono);font-size:.95rem;font-weight:600;color:${marginP>=0?'var(--green)':'var(--accent-2)'}">${fmt(marginP)}</div>
-            <div style="font-size:.68rem;color:${marginP>=0?'var(--green)':'var(--accent-2)'}">${marginPctP !== '—' ? marginPctP+'%' : '—'}</div>
-          </div>
-        </div>
-        ${p._fromCotizador && p._cotizadorRef ? `
-          <div style="background:rgba(26,58,143,.06);border-radius:6px;padding:10px 14px;margin-bottom:14px;display:flex;gap:20px;flex-wrap:wrap">
-            <div style="font-size:.62rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.06em;width:100%;margin-bottom:4px">Referencia Cotizador</div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Overhead</div><div style="font-family:var(--mono);font-size:.82rem">${p._cotizadorRef.overhead}×</div></div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Utilidad</div><div style="font-family:var(--mono);font-size:.82rem">${(p._cotizadorRef.utilidad*100).toFixed(0)}%</div></div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Costo ALG</div><div style="font-family:var(--mono);font-size:.82rem">${fmt(p._cotizadorRef.costoAlg)}</div></div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Precio cotizado</div><div style="font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--accent)">${fmt(p._cotizadorRef.precioLleno)}</div></div>
-          </div>` : ''}
-        ${assignHTML ? `
-          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">Equipo asignado</div>
-          ${assignHTML}
-        ` : '<p style="font-size:.82rem;color:var(--ink-soft)">Sin miembros asignados.</p>'}
-        ${p.juntas && p.juntas.hrs > 0 ? (() => {
-          const jc = calcHrCost(p.juntas.hrs, JUNTAS_RATE);
-          const mnames = (p.juntas.members||[]).map(mid => {
-            const em = employees.find(e=>e.id===mid);
-            return em ? em.name : '—';
-          }).join(', ');
-          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--paper-2);background:rgba(180,83,9,.03)">
-            <div style="display:flex;align-items:center;gap:8px">
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>
-              <div>
-                <span style="font-size:.82rem;font-weight:600;color:var(--amber)">⏱ Juntas</span>
-                <span style="font-size:.75rem;color:var(--ink-soft);margin-left:6px">${p.juntas.desc||'Meetings'}</span>
-                ${mnames ? `<div style="font-size:.68rem;color:var(--ink-soft)">Afecta: ${mnames}</div>` : ''}
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
-              <span style="font-size:.72rem;color:var(--ink-soft)">C.Dir <span style="font-family:var(--mono)">${fmt(jc.costoDir)}</span></span>
-              <span style="font-size:.72rem;color:var(--ink-soft)">Overhead <span style="font-family:var(--mono)">${fmt(jc.overhead)}</span></span>
-              <span style="font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--amber)">${p.juntas.hrs} hrs · ${fmt(jc.costoTotal)}</span>
-            </div>
-          </div>`;
-        })() : ''}
-        ${vendorHTML ? `
-          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:14px 0 8px">Proveedores</div>
-          ${vendorHTML}
-        ` : ''}
-      </div>
-    </div>`;
+    return '<div class="proj-card" onclick="openProjectModal(projects.find(x=>x.id===' + p.id + '))">'
+      + '<div class="proj-card-top" style="background:' + p.color + '"></div>'
+      + '<div class="proj-card-body">'
+      + '<div class="proj-card-name">' + p.name
+        + ' <span class="badge ' + typeCls + '" style="font-size:.58rem">' + typeLbl + '</span>'
+        + (p._fromCotizador ? ' <span class="badge ok" style="font-size:.55rem">📋</span>' : '')
+      + '</div>'
+      + '<div class="proj-card-client">' + (p.client||'—') + '</div>'
+      + '<div class="proj-card-kpis">'
+        + '<div class="proj-card-kpi"><div class="proj-card-kpi-label">Ingreso c/IVA</div>'
+          + '<div class="proj-card-kpi-val" style="color:var(--green)">' + (p.currency==='USD' ? fmtUSD(p.income||0) : fmt(inc)) + '</div></div>'
+        + '<div class="proj-card-kpi"><div class="proj-card-kpi-label">Margen bruto</div>'
+          + '<div class="proj-card-kpi-val" style="color:' + mColor + '">' + fmt(margin)
+          + '<span style="font-size:.65rem;margin-left:4px;opacity:.8">' + (mPct!=='—' ? mPct+'%' : '') + '</span></div></div>'
+        + '<div class="proj-card-kpi"><div class="proj-card-kpi-label">Colaboradores</div>'
+          + '<div class="proj-card-kpi-val">' + empCount + '</div></div>'
+        + '<div class="proj-card-kpi"><div class="proj-card-kpi-label">Hrs asignadas</div>'
+          + '<div class="proj-card-kpi-val">' + totalHrs.toFixed(0) + ' <span style="font-size:.7rem;color:var(--ink-soft)">hrs</span></div></div>'
+      + '</div>'
+      + '<div class="proj-card-footer">'
+        + '<div style="display:flex;align-items:center;gap:2px">'
+          + '<div style="display:flex">' + avatarStack + '</div>'
+          + (moreCount>0 ? '<span style="font-size:.65rem;color:var(--ink-soft);margin-left:8px">+' + moreCount + '</span>' : '')
+        + '</div>'
+        + '<div style="display:flex;gap:6px">'
+          + '<button class="btn-add outline" style="font-size:.62rem;padding:4px 12px;border-radius:12px" onclick="event.stopPropagation();editProject(' + p.id + ')">✏ Editar</button>'
+          + '<button class="btn-add outline" style="font-size:.62rem;padding:4px 12px;border-radius:12px;color:var(--accent-2);border-color:rgba(229,57,53,.3)" onclick="event.stopPropagation();deleteProject(' + p.id + ')">✕</button>'
+        + '</div>'
+      + '</div>'
+      + '</div></div>';
   }).join('');
 }
 
+
 // ── EMPLOYEES VIEW ─────────────────────
 function renderEmployees() {
-  // Billable
   const tbody   = document.getElementById('emp-tbody');
   const empty   = document.getElementById('emp-empty');
   const table   = document.getElementById('emp-table');
@@ -2437,26 +2415,42 @@ function renderEmployees() {
   } else {
     table.style.display = ''; empty.style.display = 'none';
     tbody.innerHTML = employees.map(emp => {
-      const hrs = getEmployeeAssignedHrs(emp.id);
-      const pct = hrs / CAP;
-      const st  = capStatus(pct);
-      return `<tr>
-        <td><strong>${emp.name}</strong>${emp.role ? `<span style="font-size:.75rem;color:var(--ink-soft);margin-left:8px">${emp.role}</span>` : ''}</td>
-        <td class="r">${fmt(emp.salary||0)}</td>
-        <td class="r">${hrs.toFixed(0)} / ${CAP}</td>
-        <td class="r">${fmtPct(pct)}</td>
-        <td><span class="badge ${st.cls}">${st.label}</span></td>
-        <td class="r" style="color:var(--amber)">${fmt((emp.salary||0)*1.16)}</td>
-        <td style="display:flex;gap:4px">
-          <button class="btn-del-row" onclick="openEditEmployee(${emp.id},'billable')" title="Editar" style="color:var(--accent);font-size:.8rem">✏</button>
-          <button class="btn-del-row" onclick="deleteEmployee(${emp.id})">×</button>
-        </td>
-      </tr>`;
+      const hrs    = getEmployeeAssignedHrs(emp.id);
+      const pct    = hrs / CAP;
+      const st     = capStatus(hrs);
+      const projHrs = hrs - (emp.corpHrs||0);
+      const corpTag = emp.corpHrs > 0
+        ? '<span style="font-size:.65rem;color:var(--ink-soft);font-family:var(--mono)">' + emp.corpHrs + 'h corp</span>'
+        : '<span style="font-size:.65rem;color:var(--ink-soft)">—</span>';
+
+      const chartRow = !emp.implant
+        ? '<tr><td colspan="9" style="padding:2px 14px 12px 56px;border-bottom:1px solid var(--rule)">'
+          + buildEmpHoursChart(emp) + '</td></tr>'
+        : '';
+
+      return '<tr>'
+        + '<td><div style="display:flex;align-items:center;gap:10px">'
+        + makeAvatar(emp.name, '', emp.avatarColor)
+        + '<div><div style="font-weight:700">' + emp.name
+          + (emp.implant ? '<span class="badge ok" style="margin-left:6px;font-size:.55rem">Implant</span>' : '')
+          + '</div>'
+          + (emp.role ? '<div style="font-size:.7rem;color:var(--ink-soft)">' + emp.role + '</div>' : '')
+        + '</div></div></td>'
+        + '<td class="r">' + fmt(emp.salary||0) + '</td>'
+        + '<td class="r" style="font-family:var(--mono)">' + projHrs.toFixed(0) + '</td>'
+        + '<td class="r">' + corpTag + '</td>'
+        + '<td class="r" style="font-family:var(--mono);font-weight:600">' + hrs.toFixed(0) + ' / ' + CAP + '</td>'
+        + '<td class="r">' + fmtPct(pct) + '</td>'
+        + '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>'
+        + '<td class="r" style="color:var(--ink-soft);font-size:.75rem">' + fmt((emp.salary||0)*1.16) + '</td>'
+        + '<td style="display:flex;gap:4px">'
+        + '<button class="btn-del-row" onclick="openEditEmployee(' + emp.id + ',\'billable\')" title="Editar" style="color:var(--accent);font-size:.8rem">✏</button>'
+        + '<button class="btn-del-row" onclick="deleteEmployee(' + emp.id + ')">×</button>'
+        + '</td></tr>' + chartRow;
     }).join('');
   }
-  document.getElementById('emp-count').textContent = employees.length ? `(${employees.length})` : '';
+  document.getElementById('emp-count').textContent = employees.length ? '(' + employees.length + ')' : '';
 
-  // Corporate
   const ctbody = document.getElementById('corp-tbody');
   const cempty = document.getElementById('corp-empty');
   const ctable = document.getElementById('corp-table');
@@ -2465,21 +2459,20 @@ function renderEmployees() {
     ctable.style.display = 'none'; cempty.style.display = 'block';
   } else {
     ctable.style.display = ''; cempty.style.display = 'none';
-    ctbody.innerHTML = corporates.map(c => `<tr>
-      <td>
-        <strong>${c.name}</strong>
-        ${c._combined ? '<span class="badge warn" style="margin-left:8px;font-size:.62rem">Combinado</span>' : ''}
-      </td>
-      <td>${c.role||'—'}</td>
-      <td class="r">${fmt(c.salary||0)}</td>
-      <td class="r" style="color:var(--amber)">${fmt((c.salary||0)*1.16)}</td>
-      <td style="display:flex;gap:4px">
-        <button class="btn-del-row" onclick="openEditEmployee(${c.id},'corporate')" title="Editar" style="color:var(--accent);font-size:.8rem">✏</button>
-        <button class="btn-del-row" onclick="deleteCorporate(${c.id})">×</button>
-      </td>
-    </tr>`).join('');
+    ctbody.innerHTML = corporates.map(c => '<tr>'
+      + '<td><strong>' + c.name + '</strong>'
+        + (c._combined ? '<span class="badge warn" style="margin-left:8px;font-size:.62rem">Combinado</span>' : '')
+      + '</td>'
+      + '<td>' + (c.role||'—') + '</td>'
+      + '<td class="r">' + fmt(c.salary||0) + '</td>'
+      + '<td class="r" style="color:var(--amber)">' + fmt((c.salary||0)*1.16) + '</td>'
+      + '<td style="display:flex;gap:4px">'
+        + '<button class="btn-del-row" onclick="openEditEmployee(' + c.id + ',\'corporate\')" title="Editar" style="color:var(--accent);font-size:.8rem">✏</button>'
+        + '<button class="btn-del-row" onclick="deleteCorporate(' + c.id + ')">×</button>'
+      + '</td></tr>').join('');
   }
 }
+
 
 // ── VENDORS VIEW ───────────────────────
 let _vendorFilter = 'all';
