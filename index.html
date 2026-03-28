@@ -1518,12 +1518,20 @@ function safeRenderAll() {
 async function sbSave(table, record) {
   const clean = stripLocalFields(record);
   const { id, ...data } = clean;
+
+  // alg_corporates has a dedicated is_combined column at root level
+  // It must be sent outside of the jsonb `data` field so Supabase stores it correctly
+  let body = { data };
+  if (table === 'alg_corporates') {
+    body = { data, is_combined: !!record._combined };
+  }
+
   try {
     showSyncStatus('syncing');
     const isNew = !id || (typeof id === 'number' && id >= 1000000);
-    console.log('[sbSave]', table, isNew ? 'POST' : 'PATCH id=' + id, JSON.stringify(data).slice(0,80));
+    console.log('[sbSave]', table, isNew ? 'POST' : 'PATCH id=' + id, JSON.stringify(body).slice(0,100));
     if (isNew) {
-      const res = await sbFetch(table, 'POST', { data });
+      const res = await sbFetch(table, 'POST', body);
       if (res && res[0] && res[0].id) {
         const newId = res[0].id;
         record.id = newId;
@@ -1544,7 +1552,7 @@ async function sbSave(table, record) {
         }
       }
     } else {
-      const res = await sbFetch(table, 'PATCH', { data }, `?id=eq.${id}`);
+      const res = await sbFetch(table, 'PATCH', body, `?id=eq.${id}`);
       console.log('[sbSave] PATCH ok, rows affected:', res ? res.length : 0);
     }
     showSyncStatus('ok');
@@ -2977,7 +2985,12 @@ function saveEditEmployee() {
     const updEmp  = employees.find(e => e.id === _editEmpId);
     const updCorp = corporates.find(c => c.id === _editEmpId);
     if (updEmp)  sbSave('alg_employees',  updEmp);
-    if (updCorp) sbSave('alg_corporates', updCorp);
+    if (updCorp) {
+      sbSave('alg_corporates', updCorp);
+    } else if (!isCorporate) {
+      // Was corporate/combined before — remove from Supabase so it doesn't reappear on reload
+      sbDelete('alg_corporates', _editEmpId);
+    }
   }
 }
 
