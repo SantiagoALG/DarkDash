@@ -1358,13 +1358,17 @@ async function loadFromSupabase() {
     ]);
 
     // Supabase returns rows with { id, data, is_combined? }
-    // Spread data fields and override with the real Supabase id
-    const mapRow = (r) => ({ ...(r.data || {}), id: r.id });
-    employees  = (emps  ||[]).map(mapRow);
-    corporates = (corps ||[]).map(r => ({ ...(r.data||{}), id: r.id, _combined: !!r.is_combined }));
-    projects   = (projs ||[]).map(mapRow);
-    vendors    = (vends ||[]).map(mapRow);
-    expenses   = (exps  ||[]).map(mapRow);
+    // r.data is the jsonb column; spread safely with fallback
+    const mapRow = (r) => {
+      if (!r) return null;
+      const d = r.data && typeof r.data === 'object' ? r.data : {};
+      return { ...d, id: r.id };
+    };
+    employees  = (emps  ||[]).map(mapRow).filter(Boolean);
+    corporates = (corps ||[]).map(r => r ? { ...(r.data||{}), id: r.id, _combined: !!r.is_combined } : null).filter(Boolean);
+    projects   = (projs ||[]).map(mapRow).filter(Boolean);
+    vendors    = (vends ||[]).map(mapRow).filter(Boolean);
+    expenses   = (exps  ||[]).map(mapRow).filter(Boolean);
 
     // Keep local idCounter well above Supabase's max to avoid collisions
     const allIds = [
@@ -1373,12 +1377,16 @@ async function loadFromSupabase() {
     const maxSbId = allIds.length ? Math.max(...allIds) : 0;
     idCounter = Math.max(idCounter, maxSbId + 1, 1000000);
 
-    renderAll();
+    try {
+      renderAll();
+    } catch(renderErr) {
+      console.error('Render error after load:', renderErr);
+    }
     showSyncStatus('ok');
   } catch(e) {
     console.error('Supabase load error:', e);
     showSyncStatus('error', e.message);
-    renderAll(); // render with empty data anyway
+    try { renderAll(); } catch(re) { console.error('Render error:', re); }
   }
 }
 
@@ -1387,12 +1395,16 @@ async function loadFromSupabase() {
 // in the background. On reload, Supabase is the source of truth.
 
 function stripLocalFields(record) {
-  // Remove runtime-only fields that shouldn't be stored
-  const { _open, _showBd, _fromCotizador, _fromCot, _cat } = record;
+  if (!record || typeof record !== 'object') return {};
   const clean = { ...record };
-  delete clean._open; delete clean._showBd;
-  delete clean._fromCotizador; delete clean._fromCot; delete clean._cat;
+  ['_open','_showBd','_fromCotizador','_fromCot','_cat'].forEach(k => delete clean[k]);
   return clean;
+}
+
+// Safe render — catches errors so they don't propagate to sbSave catch block
+function safeRenderAll() {
+  try { renderAll(); }
+  catch(e) { console.error('renderAll error:', e); }
 }
 
 async function sbSave(table, record) {
@@ -1401,18 +1413,35 @@ async function sbSave(table, record) {
   try {
     showSyncStatus('syncing');
     const isNew = !id || (typeof id === 'number' && id >= 1000000);
+    console.log('[sbSave]', table, isNew ? 'POST' : 'PATCH id=' + id, JSON.stringify(data).slice(0,80));
     if (isNew) {
       const res = await sbFetch(table, 'POST', { data });
-      // Update the record's id with Supabase-generated id
       if (res && res[0] && res[0].id) {
-        record.id = res[0].id;
+        const newId = res[0].id;
+        record.id = newId;
+        console.log('[sbSave] POST ok, new id:', newId);
+        // Update the matching record in the correct array with the Supabase id
+        const arrMap = {
+          alg_employees:  employees,
+          alg_corporates: corporates,
+          alg_projects:   projects,
+          alg_vendors:    vendors,
+          alg_expenses:   expenses,
+        };
+        const arr = arrMap[table];
+        if (arr) {
+          // Find by old local id (the one we just stripped out as `id`)
+          const localIdx = arr.findIndex(x => x.id === id || x === record);
+          if (localIdx >= 0) arr[localIdx].id = newId;
+        }
       }
     } else {
-      await sbFetch(table, 'PATCH', { data }, `?id=eq.${id}`);
+      const res = await sbFetch(table, 'PATCH', { data }, `?id=eq.${id}`);
+      console.log('[sbSave] PATCH ok, rows affected:', res ? res.length : 0);
     }
     showSyncStatus('ok');
   } catch(e) {
-    console.error('sbSave error:', e);
+    console.error('[sbSave] error:', e.message, 'table:', table, 'id:', id);
     showSyncStatus('error', e.message);
   }
 }
@@ -2326,7 +2355,7 @@ function renderVendors() {
 
     return `<div class="list-card" style="margin-bottom:10px">
       <div class="list-card-header" style="cursor:default;padding-left:0;overflow:hidden">
-        <div class="proj-punch" style="background:${p.color};margin-right:14px"></div>
+        <div class="proj-punch" style="background:${proj ? proj.color : 'var(--paper-3)'};margin-right:14px"></div>
         <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
           <span style="font-size:.95rem;font-weight:700">${v.name||'Sin nombre'}</span>
           ${proj ? `<span style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--ink-soft)"><span class="dot" style="background:${proj.color}"></span>${proj.name}</span>` : '<span style="font-size:.78rem;color:var(--ink-soft)">Sin proyecto</span>'}
@@ -2689,15 +2718,12 @@ function saveProject() {
   } else {
     projects.push(proj);
   }
+  // Capture reference BEFORE closeModal resets editingProjectId
+  const projToSave = proj;
   closeModal('project');
   renderAll();
   showToast(`Proyecto "${name}" guardado ✓`);
-  if (SUPABASE_READY) {
-    const savedProj = editingProjectId
-      ? projects.find(p => p.id === editingProjectId)
-      : projects[projects.length-1];
-    if (savedProj) sbSave('alg_projects', savedProj);
-  }
+  if (SUPABASE_READY) sbSave('alg_projects', projToSave);
 }
 
 function deleteProject(id) {
@@ -2853,7 +2879,7 @@ function saveEmployee() {
     implant:  isImpl,
   });
   closeModal('employee');
-  renderAll();
+  safeRenderAll();
   showToast(`${name} agregado ✓`);
   if (SUPABASE_READY) sbSave('alg_employees', employees[employees.length-1]);
 }
