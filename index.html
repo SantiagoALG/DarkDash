@@ -1760,7 +1760,8 @@ const CAP_MAX  = 140;  // límite con margen de mejora (+20)
 const IVA      = 0.16; // IVA aplicado a honorarios
 
 // Horas por colaborador: producción + juntas si están en el bloque de juntas
-function getEmployeeAssignedHrs(empId) {
+// Project + juntas hours only (no corpHrs)
+function getProjectJuntasHrs(empId) {
   let hrs = 0;
   projects.forEach(p => {
     const a = (p.assignments||[]).find(x => x.empId === empId);
@@ -1770,10 +1771,15 @@ function getEmployeeAssignedHrs(empId) {
       hrs += p.juntas.hrs;
     }
   });
-  // Corporate/operational hours
-  const emp = employees.find(e => e.id === empId);
-  if (emp && emp.corpHrs) hrs += emp.corpHrs;
   return hrs;
+}
+
+// Total assigned hours including corporate (used for capacity bars + alerts)
+function getEmployeeAssignedHrs(empId) {
+  const projJuntas = getProjectJuntasHrs(empId);
+  const emp = employees.find(e => e.id === empId);
+  const corpHrs = emp ? (emp.corpHrs || 0) : 0;
+  return projJuntas + corpHrs;
 }
 
 function getProjectHrs(proj) {
@@ -2297,7 +2303,7 @@ function renderPayrollBreakdown() {
 
 // ── EMPLOYEE HOURS CHART ──────────────────────────────────────────────────
 function buildEmpHoursChart(emp) {
-  const totalHrs = getEmployeeAssignedHrs(emp.id);
+  const totalHrs = getEmployeeAssignedHrs(emp.id); // includes corpHrs
   if (totalHrs === 0) {
     return '<div style="font-size:.72rem;color:var(--ink-soft);padding:6px 0">Sin horas asignadas este mes.</div>';
   }
@@ -2428,10 +2434,10 @@ function renderEmployees() {
   } else {
     table.style.display = ''; empty.style.display = 'none';
     tbody.innerHTML = employees.map(emp => {
-      const hrs    = getEmployeeAssignedHrs(emp.id);
-      const pct    = hrs / CAP;
-      const st     = capStatus(hrs);
-      const projHrs = hrs - (emp.corpHrs||0);
+      const projHrs = getProjectJuntasHrs(emp.id);
+      const hrs     = projHrs + (emp.corpHrs||0);  // total for capacity
+      const pct     = hrs / CAP;
+      const st      = capStatus(hrs);
       const corpTag = emp.corpHrs > 0
         ? '<span style="font-size:.65rem;color:var(--ink-soft);font-family:var(--mono)">' + emp.corpHrs + 'h corp</span>'
         : '<span style="font-size:.65rem;color:var(--ink-soft)">—</span>';
@@ -3875,6 +3881,10 @@ function buildPlCard(o) {
     +wonBtn
     +'</div>'
     +(o.notes ? '<div style="font-size:.68rem;color:var(--ink-soft);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">'+(o.notes.length>80?o.notes.slice(0,80)+'...':o.notes)+'</div>' : '')
+    +'<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">'
+    +'<button onclick="event.stopPropagation();openPipelineModal('+o.id+')" style="font-size:.65rem;padding:3px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--ink-soft);cursor:pointer;font-family:var(--sans)">✏ Editar</button>'
+    +'<button onclick="event.stopPropagation();deletePipelineOpp('+o.id+')" style="font-size:.65rem;padding:3px 10px;border-radius:8px;border:1px solid rgba(229,57,53,.3);background:rgba(229,57,53,.08);color:#f87171;cursor:pointer;font-family:var(--sans)">✕ Eliminar</button>'
+    +'</div>'
     +'</div>';
 }
 
