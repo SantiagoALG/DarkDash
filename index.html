@@ -1214,6 +1214,18 @@ select { cursor: pointer; }
         </select>
       </div>
     </div>
+    <!-- Horas corporativas -->
+    <div style="display:flex;align-items:center;gap:14px;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;margin-bottom:12px">
+      <div style="flex:1">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:2px">Horas corporativas / mes</div>
+        <div style="font-size:.7rem;color:var(--ink-soft)">Cotizaciones, RRHH, ventas, operaciones, etc. Suman a capacidad total.</div>
+      </div>
+      <input type="number" id="ee-corp-hrs" placeholder="0" min="0" max="120" step="1"
+        style="width:68px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:var(--mono);font-size:1rem;font-weight:600;padding:8px 10px;text-align:center"
+        oninput="updateEePreview()">
+      <div style="font-size:.75rem;color:var(--ink-soft)">hrs</div>
+    </div>
+
     <!-- Implant + Overhead -->
     <div style="border:1.5px solid var(--paper-3);border-radius:6px;overflow:hidden;margin-top:4px">
       <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--paper-2);border-bottom:1px solid var(--paper-3)">
@@ -1555,7 +1567,13 @@ async function loadFromSupabase() {
       return { ...d, id: r.id };
     };
     employees  = (emps  ||[]).map(mapRow).filter(Boolean);
-    corporates = (corps ||[]).map(r => r ? { ...(r.data||{}), id: r.id, _combined: !!r.is_combined } : null).filter(Boolean);
+    const pureCorporates = (corps ||[]).map(r => r ? { ...(r.data||{}), id: r.id, _combined: false } : null).filter(Boolean);
+    // Combined employees live only in alg_employees with _combined:true
+    // They appear in BOTH arrays — derive the corporates view here
+    corporates = [
+      ...pureCorporates,
+      ...employees.filter(e => e._combined).map(e => ({...e})),
+    ];
     projects   = (projs ||[]).map(mapRow).filter(Boolean);
     vendors    = (vends ||[]).map(mapRow).filter(Boolean);
     expenses   = (exps  ||[]).map(mapRow).filter(Boolean);
@@ -3014,33 +3032,55 @@ function saveEditEmployee() {
   const role   = document.getElementById('ee-role').value.trim();
   const salary = parseFloat(document.getElementById('ee-salary').value) || 0;
   const type   = document.getElementById('ee-type').value;
-
   if (!name) { showToast('Escribe el nombre'); return; }
 
-  // Determine new categories
-  const isBillable  = type === 'billable' || type === 'combined';
+  const isBillable  = type === 'billable'  || type === 'combined';
   const isCorporate = type === 'corporate' || type === 'combined';
   const isCombined  = type === 'combined';
 
-  // Remove from both lists first
   employees  = employees.filter(e => e.id !== _editEmpId);
   corporates = corporates.filter(c => c.id !== _editEmpId);
 
-  const overhead = parseFloat(document.getElementById('ee-overhead').value) ?? OVERHEAD_RATE;
-  const util     = parseFloat(document.getElementById('ee-util').value)     ?? 50;
-  const base = { id: _editEmpId, name, role, salary, overhead, util, implant: _editIsImplant, _combined: isCombined };
+  const overhead    = parseFloat(document.getElementById('ee-overhead').value) || OVERHEAD_RATE;
+  const util        = parseFloat(document.getElementById('ee-util').value)     || 50;
+  const corpHrs     = parseFloat(document.getElementById('ee-corp-hrs')?.value) || 0;
+  const avatarColor = document.getElementById('ee-avatar-color')?.value || null;
+
+  const base = { id: _editEmpId, name, role, salary, overhead, util,
+                 implant: _editIsImplant, _combined: isCombined,
+                 corpHrs, avatarColor };
 
   if (isBillable)  employees.push({...base});
-  if (isCorporate) corporates.push({...base, _combined: isCombined});
+  // Combined employees appear in corporates array locally (derived from employees)
+  // Pure corporates get their own record in alg_corporates
+  if (isCorporate && !isCombined) corporates.push({...base});
+
+  // For combined: rebuild corporates to include them (derived view)
+  if (isCombined) {
+    corporates = [
+      ...corporates.filter(c => !c._combined),
+      ...employees.filter(e => e._combined).map(e => ({...e})),
+    ];
+  }
 
   closeModal('edit-employee');
   renderAll();
-  showToast(`${name} actualizado ✓`);
+  showToast(name + ' actualizado ✓');
+
   if (SUPABASE_READY) {
-    const updEmp  = employees.find(e => e.id === _editEmpId);
-    const updCorp = corporates.find(c => c.id === _editEmpId);
-    if (updEmp)  sbSave('alg_employees',  updEmp);
-    if (updCorp) sbSave('alg_corporates', updCorp);
+    if (isBillable) {
+      // billable & combined both live in alg_employees
+      const updEmp = employees.find(e => e.id === _editEmpId);
+      if (updEmp) sbSave('alg_employees', updEmp);
+    }
+    if (isCorporate && !isCombined) {
+      // pure corporate lives in alg_corporates
+      const updCorp = corporates.find(c => c.id === _editEmpId);
+      if (updCorp) sbSave('alg_corporates', updCorp);
+    } else if (!isCorporate) {
+      // was corporate before — delete from alg_corporates
+      sbDelete('alg_corporates', _editEmpId);
+    }
   }
 }
 
