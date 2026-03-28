@@ -4,1230 +4,826 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALG | Dashboard</title>
-<link href="https://api.fontshare.com/v2/css?f[]=monument-grotesk@400,500,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=monument-grotesk@400,500,700,900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  /* ── ALG DASHBOARD ── */
-  --ink:       #ffffff;
-  --ink-mid:   #a0a0a0;
-  --ink-soft:  #555555;
-  --paper:     #000000;          /* fondo puro */
-  --paper-2:   #0d0f14;          /* surface de cards */
-  --paper-3:   #1a1d24;          /* bordes, dividers */
-  --accent:    #c8972a;          /* ALG gold */
-  --accent-2:  #e53935;          /* rojo financiero */
-  --gold:      #c8972a;
-  --green:     #26a65b;          /* verde financiero */
-  --green-bg:  rgba(38,166,91,.12);
-  --red-bg:    rgba(229,57,53,.12);
-  --amber:     #c8972a;
-  --amber-bg:  rgba(200,151,42,.12);
-  --mono:      'DM Mono', monospace;
-  --sans:      'Monument Grotesk', sans-serif;
-  --radius:    3px;
-  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 4px 20px rgba(0,0,0,.6);
-  --shadow-lg: 0 1px 0 rgba(255,255,255,.03), 0 12px 48px rgba(0,0,0,.8);
-  --rule:      rgba(255,255,255,.08);
-  --cap:       120;
-}
+/* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 15px; }
 body {
-  font-family: var(--sans);
-  background: var(--paper);
-  color: var(--ink);
+  font-family: 'Monument Grotesk', sans-serif;
+  background: #f2ede4;
+  color: #111111;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── VARIABLES ── */
+:root {
+  --beige:     #f2ede4;
+  --bone:      #e8e2d6;
+  --bone-2:    #ddd7c9;
+  --rule:      #c8c2b4;
+  --rule-heavy:#9e9888;
+  --ink:       #111111;
+  --ink-mid:   #555555;
+  --ink-soft:  #999999;
+  --gold:      #c8972a;
+  --green:     #1a7a40;
+  --red:       #c0392b;
+  --mono:      'DM Mono', monospace;
+  --sans:      'Monument Grotesk', sans-serif;
+}
+
 /* ── HEADER ── */
 header {
-  background: #090b10;
-  border-bottom: 1px solid var(--rule);
-  box-shadow: 0 1px 0 rgba(200,151,42,.3);
-  padding: 0 40px;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 60px; position: sticky; top: 0; z-index: 100;
+  background: var(--ink);
+  height: 52px;
+  display: flex; align-items: center;
+  padding: 0 0 0 32px;
+  position: sticky; top: 0; z-index: 200;
+  border-bottom: 2px solid var(--gold);
 }
-.logo { font-weight: 700; font-size: 1.4rem; color: #fff; letter-spacing: .02em; }
-.logo span { color: var(--gold); }
-header nav { display: flex; gap: 6px; }
+.logo {
+  font-weight: 900; font-size: 1rem;
+  color: #fff; letter-spacing: .08em;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 0;
+}
+.logo-pipe {
+  width: 1px; height: 16px;
+  background: var(--gold);
+  margin: 0 12px;
+}
+.logo-sub {
+  font-weight: 400; font-size: .72rem;
+  color: var(--gold); letter-spacing: .18em;
+  text-transform: uppercase;
+}
+header nav {
+  display: flex; margin-left: 40px; height: 52px;
+}
 header nav button {
-  background: transparent; border: 1px solid rgba(255,255,255,.15);
-  color: rgba(255,255,255,.7); padding: 6px 16px; border-radius: 30px;
-  font-family: var(--sans); font-size: .8rem; cursor: pointer; transition: all .2s;
+  background: transparent; border: none;
+  color: rgba(255,255,255,.45);
+  padding: 0 20px; height: 52px;
+  font-family: var(--sans); font-size: .72rem;
+  font-weight: 500; letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer; transition: color .15s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
 }
-header nav button.active, header nav button:hover {
-  background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.4);
+header nav button:hover { color: rgba(255,255,255,.8); }
+header nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
+.header-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 20px;
+  padding-right: 32px;
 }
-.header-month {
-  display: flex; align-items: center; gap: 10px;
+.header-right label {
+  font-size: .6rem; color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: .1em;
+  font-family: var(--mono);
 }
-.header-month label { font-size: .72rem; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .06em; }
-.header-month input {
-  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
-  color: #fff; font-family: var(--mono); font-size: .82rem;
-  padding: 5px 10px; border-radius: 4px;
+.header-right input {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.8);
+  font-family: var(--mono); font-size: .75rem;
+  padding: 4px 8px;
 }
-.header-month input:focus { outline: none; border-color: var(--gold); }
+.header-right input:focus { outline: none; border-color: var(--gold); }
+#sync-status { font-family: var(--mono); font-size: .65rem; }
 
-/* ── PAGE WRAPPER ── */
+/* ── NAV PAGES ── */
 .page { display: none; }
 .page.active { display: block; }
 
-/* ── DASHBOARD ── */
-.dash-wrap { padding: 28px 32px; max-width: 1280px; margin: 0 auto; }
-
-/* KPI CARDS */
-.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
-.kpi-card {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-top: 1px solid var(--gold);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  box-shadow: var(--shadow);
-  display: flex; flex-direction: column; gap: 8px;
+/* ── DASHBOARD GRID ── */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: auto;
+  border-left: 1px solid var(--rule);
+  border-top: 1px solid var(--rule);
 }
-.kpi-label {
-  font-family: var(--sans); font-size: .62rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em; color: var(--ink-soft);
-}
-.kpi-val {
-  font-family: var(--mono); font-size: 1.9rem; font-weight: 400;
-  color: var(--ink); line-height: 1; letter-spacing: -.02em;
-}
-.kpi-val.green { color: #26a65b; }
-.kpi-val.gold  { color: var(--gold); }
-.kpi-val.red   { color: #e53935; }
-.kpi-sub { font-size: .68rem; color: var(--ink-soft); font-family: var(--mono); }
-.kpi-bar { height: 1px; background: var(--rule); margin-top: 8px; overflow: hidden; }
-.kpi-bar-fill { height: 100%; transition: width .6s ease; }
-
-/* TWO-COL */
-.two-col { display: grid; grid-template-columns: 1fr 340px; gap: 24px; margin-bottom: 32px; }
-.three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-bottom: 32px; }
-
-/* CARD */
-.card {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+.cell {
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: var(--beige);
+  position: relative;
   overflow: hidden;
 }
-.card-header {
-  padding: 14px 20px; border-bottom: 1px solid var(--rule);
+.cell:nth-child(even) { background: var(--bone); }
+.cell-label {
+  font-size: .55rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: var(--ink-soft);
+  padding: 10px 14px 4px;
+  display: block;
+}
+.cell-val {
+  font-family: var(--mono);
+  font-size: 1.6rem; font-weight: 400;
+  color: var(--ink); line-height: 1;
+  padding: 0 14px 8px;
+}
+.cell-val.green { color: var(--green); }
+.cell-val.red   { color: var(--red); }
+.cell-val.gold  { color: var(--gold); }
+.cell-sub {
+  font-size: .65rem; color: var(--ink-soft);
+  font-family: var(--mono);
+  padding: 0 14px 10px;
+}
+
+/* KPI cells — span 3 cols each */
+.cell-kpi { grid-column: span 3; padding-bottom: 4px; }
+
+/* Section title cell */
+.cell-title {
+  grid-column: span 12;
+  background: var(--ink) !important;
+  padding: 10px 20px;
+  display: flex; align-items: baseline; gap: 14px;
+}
+.cell-title h2 {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .14em;
+  color: var(--gold);
+}
+.cell-title small {
+  font-size: .6rem; color: rgba(255,255,255,.3);
+  letter-spacing: .06em;
+}
+
+/* Projects row */
+.cell-proj {
+  grid-column: span 4;
+  cursor: pointer;
+  transition: background .12s;
+}
+.cell-proj:hover { background: var(--bone-2) !important; }
+.cell-proj-name {
+  font-weight: 700; font-size: .9rem;
+  padding: 12px 14px 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.cell-proj-bar {
+  width: 3px; height: 16px; border-radius: 0; flex-shrink: 0;
+}
+.cell-proj-meta {
+  font-size: .68rem; color: var(--ink-soft);
+  padding: 0 14px;
+  font-family: var(--mono);
+}
+.cell-proj-income {
+  font-family: var(--mono); font-size: 1.1rem;
+  font-weight: 400; color: var(--ink);
+  padding: 6px 14px 12px;
+}
+
+/* Financial summary cells */
+.cell-fin { grid-column: span 4; }
+.cell-fin-wide { grid-column: span 6; }
+
+/* Team capacity cell */
+.cell-capacity { grid-column: span 12; padding: 16px 20px; }
+.cap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0;
+  border: 1px solid var(--rule);
+  border-right: none; border-bottom: none;
+}
+.cap-member {
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.cap-member:hover { background: var(--bone-2); }
+.cap-member-name {
+  font-size: .75rem; font-weight: 700;
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 6px;
+}
+.cap-bar-wrap {
+  height: 3px; background: var(--rule);
+  position: relative; overflow: hidden;
+}
+.cap-bar-fill {
+  position: absolute; left: 0; top: 0; height: 100%;
+  transition: width .4s ease;
+}
+.cap-pct {
+  font-family: var(--mono); font-size: .6rem;
+  color: var(--ink-soft); margin-top: 4px;
+}
+
+/* ── POPOVER ── */
+.popover {
+  position: fixed; z-index: 500;
+  background: var(--ink); color: #fff;
+  border: 1px solid rgba(255,255,255,.1);
+  border-top: 2px solid var(--gold);
+  padding: 16px 18px; min-width: 220px; max-width: 320px;
+  pointer-events: none;
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .15s, transform .15s;
+  font-size: .78rem; line-height: 1.6;
+}
+.popover.show {
+  opacity: 1; transform: translateY(0);
+  pointer-events: auto;
+}
+.popover-title {
+  font-size: .6rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--gold); margin-bottom: 10px;
+}
+.popover-row {
+  display: flex; justify-content: space-between;
+  gap: 16px; padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.popover-row:last-child { border-bottom: none; }
+.popover-key { color: rgba(255,255,255,.5); font-size: .72rem; }
+.popover-val { font-family: var(--mono); font-size: .75rem; }
+
+/* ── SECTION PAGES (non-dashboard) ── */
+.section-page { padding: 0; }
+.section-table-wrap { overflow-x: auto; }
+.stbl {
+  width: 100%; border-collapse: collapse;
+  border-left: 1px solid var(--rule);
+}
+.stbl th {
+  font-size: .6rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--ink-soft); padding: 10px 16px;
+  text-align: left; background: var(--bone);
+  border-right: 1px solid var(--rule);
+  border-bottom: 2px solid var(--rule-heavy);
+  white-space: nowrap;
+}
+.stbl th.r { text-align: right; }
+.stbl td {
+  padding: 10px 16px;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  font-size: .82rem; vertical-align: middle;
+}
+.stbl td.r { text-align: right; font-family: var(--mono); font-size: .78rem; }
+.stbl tr:hover td { background: var(--bone); }
+.stbl tr:last-child td { border-bottom: none; }
+.stbl tfoot td {
+  font-weight: 700; background: var(--bone-2) !important;
+  border-top: 2px solid var(--rule-heavy);
+}
+
+/* Page header bar */
+.page-bar {
+  background: var(--bone);
+  border-bottom: 2px solid var(--rule-heavy);
+  padding: 14px 24px;
   display: flex; align-items: center; justify-content: space-between;
-  background: transparent;
+  gap: 16px;
 }
-.card-title {
-  font-family: var(--sans); font-weight: 700; font-size: .75rem;
-  color: var(--ink); text-transform: uppercase; letter-spacing: .1em;
+.page-bar h1 {
+  font-size: .9rem; font-weight: 900;
+  text-transform: uppercase; letter-spacing: .1em;
+  display: flex; align-items: center; gap: 10px;
 }
-.card-body { padding: 16px 20px; }
+.page-bar h1 small {
+  font-weight: 400; font-size: .7rem;
+  color: var(--ink-soft); text-transform: none; letter-spacing: 0;
+}
 
-/* CAPACITY BARS */
-.cap-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 9px 0; border-bottom: 1px solid var(--paper-2);
+/* Buttons */
+.btn {
+  background: var(--ink); color: #fff;
+  border: none; padding: 8px 18px;
+  font-family: var(--sans); font-size: .72rem;
+  font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; cursor: pointer;
+  transition: background .15s;
 }
-.cap-row:last-child { border-bottom: none; }
-.cap-name { font-size: .82rem; font-weight: 600; color: var(--ink); min-width: 100px; flex-shrink: 0; }
-.cap-bar-wrap { flex: 1; height: 8px; background: var(--paper-3); border-radius: 4px; overflow: visible; position: relative; }
-.cap-bar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; position: relative; }
-.cap-bar-overflow {
-  position: absolute; right: 0; top: 0; height: 100%; border-radius: 0 4px 4px 0;
-  background: var(--accent-2); opacity: .85;
+.btn:hover { background: #333; }
+.btn.gold { background: var(--gold); color: var(--ink); }
+.btn.gold:hover { opacity: .85; }
+.btn.ghost {
+  background: transparent; color: var(--ink-soft);
+  border: 1px solid var(--rule);
 }
-.cap-pct { font-family: var(--mono); font-size: .75rem; min-width: 42px; text-align: right; flex-shrink: 0; }
-.cap-hrs { font-family: var(--mono); font-size: .72rem; color: var(--ink-soft); min-width: 58px; text-align: right; flex-shrink: 0; }
-.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.btn.ghost:hover { border-color: var(--rule-heavy); color: var(--ink); }
+.btn.danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
+.btn.danger:hover { background: var(--red); color: #fff; }
 
-/* STATUS BADGE */
+/* Badges */
 .badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-family: var(--sans); font-size: .62rem; font-weight: 700;
-  padding: 2px 8px; border-radius: var(--radius);
-  letter-spacing: .06em; text-transform: uppercase;
+  display: inline-block;
+  font-size: .6rem; font-weight: 700;
+  padding: 2px 7px;
+  text-transform: uppercase; letter-spacing: .05em;
+  font-family: var(--sans);
 }
-.badge.ok     { background: rgba(38,166,91,.15);  color: #26a65b; }
+.badge.ok     { background: rgba(26,122,64,.12);  color: var(--green); }
 .badge.warn   { background: rgba(200,151,42,.15); color: var(--gold); }
-.badge.over   { background: rgba(229,57,53,.15);  color: #e53935; }
-.badge.idle   { background: rgba(255,255,255,.06); color: var(--ink-soft); }
-.badge.fixed  { background: rgba(200,151,42,.15); color: var(--gold); }
-.badge.oneshot{ background: rgba(255,255,255,.06); color: var(--ink-mid); }
+.badge.over   { background: rgba(192,57,43,.12);  color: var(--red); }
+.badge.idle   { background: rgba(0,0,0,.06);       color: var(--ink-soft); }
+.badge.fixed  { background: rgba(200,151,42,.12); color: var(--gold); }
+.badge.oneshot{ background: rgba(0,0,0,.06);       color: var(--ink-soft); }
 
-/* PROJECT TABLE */
-.proj-table { width: 100%; border-collapse: collapse; }
-.proj-table th {
-  font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--ink-soft); padding: 7px 12px; text-align: left;
-  background: var(--paper-2); border-bottom: 1.5px solid var(--paper-3);
-}
-.proj-table th.r { text-align: right; }
-.proj-table td { padding: 9px 12px; border-bottom: 1px solid var(--paper-2); font-size: .84rem; vertical-align: middle; }
-.proj-table td.r { text-align: right; font-family: var(--mono); font-size: .8rem; }
-.proj-table tr:last-child td { border-bottom: none; }
-.proj-table tr:hover td { background: var(--paper); }
-
-/* INCOME BAR */
-.income-bar-wrap { display: flex; align-items: center; gap: 8px; }
-.income-bar-bg { flex: 1; height: 6px; background: var(--paper-3); border-radius: 3px; overflow: hidden; min-width: 60px; }
-.income-bar-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width .4s; }
-
-/* ── SECTIONS SHARED ── */
-.section-wrap { padding: 28px 32px; max-width: 1280px; margin: 0 auto; }
-.section-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
-}
-.section-title {
-  font-family: var(--sans); font-weight: 700; font-size: 1.4rem;
-  color: var(--ink);
-}
-.section-title small {
-  font-size: .72rem; color: var(--ink-soft); font-weight: 400; margin-left: 10px;
+/* Avatar */
+.avatar {
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .6rem; font-weight: 700; flex-shrink: 0;
+  letter-spacing: .02em;
 }
 
-/* FORM MODAL */
+/* Modals */
 .modal-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.65); backdrop-filter: blur(2px);
-  z-index: 999; align-items: center; justify-content: center;
+  background: rgba(17,17,17,.55);
+  z-index: 800; align-items: center; justify-content: center;
 }
 .modal-overlay.open { display: flex; }
 .modal {
-  background: var(--paper-2);
+  background: var(--beige);
   border: 1px solid var(--rule);
-  border-top: 2px solid var(--gold);
-  border-radius: var(--radius); padding: 32px;
-  width: 520px; max-width: 94vw; max-height: 90vh; overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  animation: modalIn .2s ease;
+  border-top: 3px solid var(--ink);
+  padding: 32px; width: 540px;
+  max-width: 94vw; max-height: 90vh; overflow-y: auto;
+  animation: mIn .18s ease;
 }
-@keyframes modalIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+@keyframes mIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
 .modal h3 {
-  font-family: var(--sans); font-weight: 700; font-size: 1rem;
-  color: var(--ink); margin-bottom: 22px;
-  padding-bottom: 14px; border-bottom: 1px solid var(--rule);
+  font-size: .82rem; font-weight: 900;
+  text-transform: uppercase; letter-spacing: .12em;
+  margin-bottom: 24px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
 }
-
-.field-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.field-group { display: flex; flex-direction: column; gap: 5px; }
 .field-group label {
-  font-family: var(--sans); font-size: .65rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft);
+  font-size: .6rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft);
 }
 .field-group input, .field-group select, .field-group textarea {
-  border: 1px solid var(--paper-3);
-  background: var(--paper);
-  border-radius: var(--radius);
-  padding: 9px 12px; font-family: var(--mono); font-size: .85rem; color: var(--ink);
-  transition: border-color .15s; appearance: none;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: 9px 12px; font-family: var(--mono); font-size: .82rem; color: var(--ink);
+  transition: border-color .12s; appearance: none;
 }
 .field-group input:focus, .field-group select:focus, .field-group textarea:focus {
-  outline: none; border-color: var(--gold);
+  outline: none; border-color: var(--ink);
 }
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
-.btn-cancel {
-  padding: 9px 18px; border: 1px solid var(--rule); border-radius: var(--radius);
-  background: transparent; cursor: pointer; font-family: var(--sans);
-  font-size: .78rem; color: var(--ink-soft); transition: all .15s;
-}
-.btn-cancel:hover { color: var(--ink); border-color: rgba(255,255,255,.15); }
-.btn-save {
-  padding: 9px 22px; background: var(--gold); color: #111010;
-  border: none; border-radius: var(--radius);
-  cursor: pointer; font-family: var(--sans);
-  font-size: .78rem; font-weight: 700; transition: opacity .15s;
-}
-.btn-save:hover { opacity: .85; }
-
-/* BTN ADD */
-.btn-add {
-  display: inline-flex; align-items: center; gap: 7px;
-  background: var(--gold); color: #111010;
-  border: none; border-radius: var(--radius);
-  padding: 9px 18px; font-family: var(--sans); font-size: .78rem; font-weight: 700;
-  letter-spacing: .04em;
-  cursor: pointer; transition: opacity .15s;
-}
-.btn-add:hover { opacity: .85; }
-.btn-add.outline {
-  background: transparent; color: var(--ink-mid);
-  border: 1px solid var(--rule);
-}
-.btn-add.outline:hover {
-  border-color: rgba(200,151,42,.4); color: var(--gold);
-  background: rgba(200,151,42,.06);
+.modal-footer {
+  display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;
+  padding-top: 16px; border-top: 1px solid var(--rule);
 }
 
-/* ASSIGNMENT ROWS in project detail */
-.assign-list { display: flex; flex-direction: column; gap: 6px; }
-.assign-row {
-  display: grid; grid-template-columns: 1fr 80px 90px 36px;
-  gap: 0; align-items: center;
-  border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden;
+/* Expense table inline edit */
+.exp-input {
+  border: none; background: transparent;
+  font-family: var(--mono); font-size: .78rem; color: var(--ink);
+  width: 100%; padding: 0;
 }
-.assign-row > * { padding: 7px 10px; border-right: 1px solid var(--rule); }
-.assign-row > *:last-child { border-right: none; }
-.assign-select {
-  border: none; background: transparent; font-family: var(--sans);
-  font-size: .84rem; color: var(--ink); width: 100%; appearance: none; cursor: pointer;
+.exp-input:focus { outline: none; }
+.exp-select {
+  border: none; background: transparent;
+  font-family: var(--sans); font-size: .78rem; color: var(--ink);
+  cursor: pointer; width: 100%;
 }
-.assign-select:focus { outline: none; }
-.assign-input {
-  border: none; background: transparent; font-family: var(--mono);
-  font-size: .84rem; color: var(--ink); width: 100%; text-align: right;
-}
-.assign-input:focus { outline: none; }
-.assign-hrs-cell { font-family: var(--mono); font-size: .75rem; color: var(--ink-soft); padding: 7px 10px; border-right: 1px solid var(--paper-2); text-align: right; }
-.btn-del-row {
-  background: none; border: none; color: var(--paper-3); cursor: pointer;
-  font-size: .9rem; display: flex; align-items: center; justify-content: center;
-  transition: color .15s; width: 36px; height: 100%;
-}
-.btn-del-row:hover { color: var(--accent-2); }
-
-/* BIG LIST ── projects, employees, vendors */
-.list-grid { display: flex; flex-direction: column; gap: 12px; }
-.list-card {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow); overflow: hidden;
-  animation: fadeUp .22s ease both;
-  transition: border-color .2s;
-}
-.list-card:hover { border-color: rgba(200,151,42,.25); }
-@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-.list-card-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px;
-  background: transparent;
-  border-bottom: 1px solid var(--rule); cursor: pointer;
-}
-.list-card-header:hover { background: rgba(255,255,255,.02); }
-.list-card-name { font-weight: 700; font-size: .9rem; flex: 1; color: var(--ink); }
-.list-card-body { display: none; padding: 20px; }
-.list-card.open .list-card-body { display: block; }
-.toggle-icon {
-  width: 20px; height: 20px; border-radius: var(--radius);
-  border: 1px solid var(--rule);
-  color: var(--ink-soft); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-size: .7rem; transition: all .2s;
-}
-.list-card.open .toggle-icon {
-  background: rgba(200,151,42,.12); color: var(--gold);
-  border-color: rgba(200,151,42,.3);
+.exp-select:focus { outline: none; }
+.exp-check {
+  width: 16px; height: 16px; cursor: pointer; accent-color: var(--ink);
 }
 
-/* EMPTY STATE */
-.empty-state {
-  text-align: center; padding: 60px 20px; color: var(--ink-soft);
+/* Financial summary bar */
+.fin-bar {
+  display: grid;
+  border-left: 1px solid var(--rule);
+  border-top: 1px solid var(--rule);
 }
-.empty-state .icon { font-size: 2rem; margin-bottom: 12px; opacity: .3; }
-.empty-state p { font-family: var(--sans); font-size: .82rem; opacity: .5; }
+.fin-bar-cell {
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 16px 20px;
+}
+.fin-bar-label {
+  font-size: .58rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--ink-soft); margin-bottom: 8px;
+}
+.fin-bar-val {
+  font-family: var(--mono); font-size: 1.4rem; line-height: 1;
+}
+.fin-bar-sub {
+  font-family: var(--mono); font-size: .62rem;
+  color: var(--ink-soft); margin-top: 5px;
+}
 
-/* CORPORATE TABLE */
-.corp-table { width: 100%; border-collapse: collapse; }
-.corp-table th {
-  font-family: var(--sans); font-size: .62rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .08em;
-  color: var(--ink-soft); padding: 9px 14px; text-align: left;
-  background: transparent; border-bottom: 1px solid var(--rule);
-}
-.corp-table th.r { text-align: right; }
-.corp-table td { padding: 11px 14px; border-bottom: 1px solid var(--rule); font-size: .84rem; vertical-align: middle; }
-.corp-table td.r { text-align: right; font-family: var(--mono); font-size: .8rem; }
-.corp-table tr:last-child td { border-bottom: none; }
-.corp-table tr:hover td { background: rgba(255,255,255,.02); }
-.corp-input {
-  border: none; background: transparent; font-family: var(--sans);
-  font-size: .84rem; color: var(--ink); width: 100%;
-}
-.corp-input-mono {
-  border: none; background: transparent; font-family: var(--mono);
-  font-size: .82rem; color: var(--ink); width: 80px; text-align: right;
-}
-.corp-input-mono:focus, .corp-input:focus { outline: none; }
-
-/* VENDOR CARDS */
-.vendor-row {
-  display: grid; grid-template-columns: 1fr 120px 120px 120px 36px;
-  gap: 0; align-items: center;
-  border: 1px solid var(--rule); border-radius: var(--radius);
-  overflow: hidden; margin-bottom: 10px; background: var(--paper-2);
-}
-.vendor-row > * { padding: 10px 12px; border-right: 1px solid var(--rule); font-size: .84rem; }
-.vendor-row > *:last-child { border-right: none; }
-.vendor-input {
-  border: none; background: transparent; font-family: var(--sans);
-  font-size: .84rem; color: var(--ink); width: 100%;
-}
-.vendor-input:focus { outline: none; }
-.vendor-num {
-  border: none; background: transparent; font-family: var(--mono);
-  font-size: .82rem; color: var(--ink); width: 100%; text-align: right;
-}
-.vendor-num:focus { outline: none; }
-.vendor-header {
-  display: grid; grid-template-columns: 1fr 120px 120px 120px 36px;
-  background: var(--paper-2); border-radius: 6px 6px 0 0;
-  border: 1.5px solid var(--paper-3); border-bottom: none;
-}
-.vendor-header span {
-  font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--ink-soft); padding: 6px 12px; border-right: 1px solid var(--paper-3);
-}
-.vendor-header span:last-child { border-right: none; }
-
-/* BREAKDOWN ROWS inside assign */
-.breakdown-list { margin-top:4px; padding:4px 0 4px 12px; border-left:2px solid var(--rule); }
-.bd-row {
-  display:grid; grid-template-columns:1fr 70px 24px;
-  gap:0; align-items:center; padding:3px 0;
-}
-.bd-input {
-  border:none; background:transparent; font-family:var(--sans);
-  font-size:.78rem; color:var(--ink); width:100%;
-}
-.bd-input:focus { outline:none; }
-.bd-hrs {
-  border:none; background:transparent; font-family:var(--mono);
-  font-size:.78rem; color:var(--ink); width:100%; text-align:right;
-}
-.bd-hrs:focus { outline:none; }
-.btn-del-bd {
-  background:none; border:none; color:var(--paper-3); cursor:pointer;
-  font-size:.8rem; display:flex; align-items:center; justify-content:center;
-  transition:color .15s;
-}
-.btn-del-bd:hover { color:var(--accent-2); }
-.toggle-bd {
-  font-size:.7rem; color:var(--accent); background:rgba(26,58,143,.07);
-  border:1px solid rgba(26,58,143,.2); border-radius:4px;
-  padding:2px 8px; cursor:pointer; font-family:var(--sans);
-  transition:all .15s; white-space:nowrap;
-}
-.toggle-bd:hover { background:rgba(26,58,143,.14); }
-
-/* TOAST */
+/* Toast */
 #toast {
-  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
-  background: var(--paper-2); color: var(--ink);
-  border: 1px solid var(--rule); border-top: 1px solid var(--gold);
-  padding: 10px 24px; border-radius: var(--radius);
-  font-family: var(--sans); font-size: .78rem;
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--ink); color: #fff;
+  border-top: 2px solid var(--gold);
+  padding: 10px 24px; font-family: var(--sans);
+  font-size: .72rem; font-weight: 600; letter-spacing: .04em;
   opacity: 0; transition: all .2s; z-index: 9999;
   pointer-events: none; white-space: nowrap;
-  box-shadow: var(--shadow-lg);
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* MINI DONUT — pure CSS */
-.mini-ring { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
-.mini-ring svg { width: 42px; height: 42px; transform: rotate(-90deg); }
-.mini-ring .track { fill: none; stroke: var(--paper-3); stroke-width: 5; }
-.mini-ring .fill  { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset .4s ease; }
-
-/* FINANCIAL SUMMARY PANEL */
-.fin-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
-.fin-cell { padding:18px 22px; border-right:1px solid var(--rule); }
-.fin-cell:last-child { border-right:none; }
-.fin-label { font-family:var(--sans); font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); margin-bottom:8px; }
-.fin-val { font-family:var(--mono); font-size:1.5rem; font-weight:400; line-height:1; letter-spacing:-.01em; }
-.fin-sub { font-family:var(--mono); font-size:.65rem; color:var(--ink-soft); margin-top:6px; }
-.fin-divider { height:1px; background:var(--rule); }
-
-/* PAYROLL BREAKDOWN TABLE */
-.payroll-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--rule); }
-.payroll-row:last-child { border-bottom:none; }
-.payroll-name { font-size:.82rem; color:var(--ink-mid); }
-.payroll-base { font-family:var(--mono); font-size:.78rem; color:var(--ink-soft); }
-.payroll-iva  { font-family:var(--mono); font-size:.72rem; color:var(--amber); }
-.payroll-total{ font-family:var(--mono); font-size:.82rem; font-weight:600; color:var(--ink); }
-
-/* PROFITABILITY BARS */
-.profit-row { margin-bottom:14px; }
-.profit-name { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
-.profit-bar-wrap { position:relative; height:8px; background:var(--paper-3); border-radius:4px; overflow:hidden; }
-.profit-bar-income { position:absolute; left:0; top:0; height:100%; background:#26a65b; border-radius:2px; transition:width .4s; }
-.profit-bar-cost   { position:absolute; left:0; top:0; height:100%; background:var(--accent-2); opacity:.5; border-radius:2px; transition:width .4s; }
-
-/* EDIT EMPLOYEE MODAL */
-.edit-emp-modal { width:460px; }
-
-/* EXPENSES TABLE */
-.exp-table { width:100%; border-collapse:collapse; }
-.exp-table th {
-  font-family:var(--sans); font-size:.62rem; font-weight:700;
-  text-transform:uppercase; letter-spacing:.08em;
-  color:var(--ink-soft); padding:9px 12px; text-align:left;
-  background:transparent; border-bottom:1px solid var(--rule);
-}
-.exp-table th.r { text-align:right; }
-.exp-table td { padding:10px 10px; border-bottom:1px solid var(--rule); vertical-align:middle; }
-.exp-table tr:last-child td { border-bottom:none; }
-.exp-table tr:hover td { background:rgba(255,255,255,.02); }
-.exp-input {
-  border:none; background:transparent; font-family:var(--sans);
-  font-size:.84rem; color:var(--ink); width:100%;
-}
-.exp-input:focus { outline:none; }
-.exp-num {
-  border:none; background:transparent; font-family:var(--mono);
-  font-size:.82rem; color:var(--ink); width:90px; text-align:right;
-}
-.exp-num:focus { outline:none; }
-.exp-select {
-  border:none; background:transparent; font-family:var(--sans);
-  font-size:.82rem; color:var(--ink); cursor:pointer; appearance:none;
-}
-.exp-select:focus { outline:none; }
-.cat-pill {
-  display:inline-block; font-size:.68rem; font-weight:700; padding:2px 9px;
-  border-radius:20px; letter-spacing:.03em;
-}
-.cat-suscripcion { background:rgba(100,140,220,.12); color:#6490dc; }
-.cat-servicios   { background:rgba(140,90,180,.12);  color:#8c5ab4; }
-.cat-renta       { background:rgba(200,151,42,.12);  color:var(--gold); }
-.cat-varios      { background:rgba(255,255,255,.05); color:var(--ink-soft); }
-
-/* PROJECTION PANEL */
-.proj-panel {
-  border:1px solid var(--rule);
-  border-radius:var(--radius); overflow:hidden; margin-bottom:28px;
-}
-.proj-panel-header {
-  display:flex; align-items:center; gap:12px; padding:14px 20px;
-  background: var(--paper-2);
-  cursor:pointer; user-select:none; border-bottom:1px solid var(--rule);
-  transition: background .2s;
-}
-.proj-panel-header:hover { background: rgba(255,255,255,.02); }
-.proj-panel-title {
-  font-family:var(--sans); font-weight:700; font-size:.82rem;
-  color: var(--ink); flex:1;
-}
-.proj-panel-body { display:none; padding:20px; }
-.proj-panel.open .proj-panel-body { display:block; }
-.proj-panel-chevron { font-size:.8rem; color:var(--ink-soft); transition:transform .25s; }
-.proj-panel.open .proj-panel-chevron { transform:rotate(180deg); }
-
-/* Pending quote card */
-.pq-card {
-  border:1.5px solid var(--paper-3); border-radius:8px; overflow:hidden;
-  margin-bottom:10px; background:#fff;
-}
-.pq-header {
-  display:grid; grid-template-columns:auto 1fr auto auto auto auto;
-  gap:0; align-items:center;
-}
-.pq-toggle-a, .pq-toggle-b {
-  width:28px; height:28px; border-radius:50%; border:2px solid;
-  display:flex; align-items:center; justify-content:center;
-  font-size:.65rem; font-weight:800; cursor:pointer;
-  transition:all .15s; flex-shrink:0; font-family:var(--mono);
-}
-.pq-toggle-a { border-color:#7c3aed; color:#7c3aed; background:transparent; }
-.pq-toggle-a.on { background:#7c3aed; color:#fff; }
-.pq-toggle-b { border-color:#0891b2; color:#0891b2; background:transparent; }
-.pq-toggle-b.on { background:#0891b2; color:#fff; }
-
-/* Delta KPI */
-.delta-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
-.delta-card { background:var(--paper-2); border:1px solid var(--rule); border-radius:var(--radius); padding:14px 16px; }
-.delta-label { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); margin-bottom:6px; }
-.delta-current { font-family:var(--mono); font-size:.85rem; color:var(--ink-soft); }
-.delta-arrow { font-size:.75rem; margin:3px 0; }
-.delta-projected { font-family:var(--mono); font-size:1.1rem; font-weight:600; }
-.delta-diff { font-size:.72rem; font-weight:700; margin-top:3px; }
-
-/* Ghost capacity bar */
-.ghost-bar { position:absolute; left:0; top:0; height:100%; border-radius:5px;
-             opacity:.35; transition:width .4s; pointer-events:none; }
-
-/* Scenario tabs */
-.scen-tab {
-  padding:5px 14px; border-radius:20px; font-size:.75rem; font-weight:700;
-  cursor:pointer; border:2px solid; transition:all .15s; font-family:var(--sans);
-}
-.scen-a { border-color:#7c3aed; color:#7c3aed; background:transparent; }
-.scen-a.on { background:#7c3aed; color:#fff; }
-.scen-b { border-color:#0891b2; color:#0891b2; background:transparent; }
-.scen-b.on { background:#0891b2; color:#fff; }
-
-/* AVATARS */
-.avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-size: .65rem; font-weight: 700;
-  flex-shrink: 0; border: 1.5px solid rgba(255,255,255,.1);
-  letter-spacing: .03em;
-}
-.avatar-sm { width: 24px; height: 24px; font-size: .55rem; }
-
-/* PROJECT COLOR PUNCH */
-.proj-punch {
-  width: 4px; border-radius: 2px; align-self: stretch; flex-shrink: 0;
-  min-height: 40px;
-}
-
-/* SCROLLBAR */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--paper-3); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(200,151,42,.3); }
+::-webkit-scrollbar-track { background: var(--bone); }
+::-webkit-scrollbar-thumb { background: var(--rule-heavy); }
 
-/* UTIL */
-.mono { font-family: var(--mono); }
-input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-select { cursor: pointer; }
-.separator { height: 1px; background: var(--rule); margin: 16px 0; }
-.text-right { text-align: right; }
-.gap-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+/* Vendor list */
+.vendor-list { border-left: 1px solid var(--rule); border-top: 1px solid var(--rule); }
+.vendor-card {
+  display: grid; grid-template-columns: 1fr 120px 120px 100px 80px 36px;
+  border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  align-items: center;
+}
+.vendor-card > * {
+  padding: 10px 14px;
+  border-right: 1px solid var(--rule);
+}
+.vendor-card > *:last-child { border-right: none; }
+.vendor-card:hover { background: var(--bone); }
+
+/* Project detail modal grid */
+.proj-assign-row {
+  display: grid; grid-template-columns: 1fr 90px 90px 36px;
+  border: 1px solid var(--rule); border-top: none;
+  align-items: center;
+}
+.proj-assign-row > * {
+  padding: 7px 10px;
+  border-right: 1px solid var(--rule);
+}
+.proj-assign-row > *:last-child { border-right: none; }
+.proj-assign-hdr {
+  display: grid; grid-template-columns: 1fr 90px 90px 36px;
+  border: 1px solid var(--rule);
+  background: var(--bone);
+}
+.proj-assign-hdr > * {
+  padding: 6px 10px;
+  border-right: 1px solid var(--rule);
+  font-size: .58rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft);
+}
+.proj-assign-hdr > *:last-child { border-right: none; }
+
+/* Add row button */
+.add-row-btn {
+  border: 1px dashed var(--rule);
+  border-top: none; width: 100%;
+  background: transparent; padding: 7px;
+  font-family: var(--sans); font-size: .7rem;
+  color: var(--ink-soft); cursor: pointer;
+  text-align: left; padding-left: 12px;
+  transition: all .12s;
+}
+.add-row-btn:hover { background: var(--bone); color: var(--ink); }
+
+/* Projection panel */
+.proj-panel {
+  border-left: 1px solid var(--rule);
+  border-top: 1px solid var(--rule);
+}
+.pq-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 120px 80px 80px 36px;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  align-items: center;
+}
+.pq-row > * {
+  padding: 10px 12px;
+  border-right: 1px solid var(--rule);
+}
+.pq-row > *:last-child { border-right: none; }
+
+/* Implant block */
+.implant-block {
+  border: 1px solid var(--rule); margin-top: 4px;
+}
+.implant-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; background: var(--bone);
+  border-bottom: 1px solid var(--rule);
+}
 </style>
 </head>
 <body>
 
-<!-- ══════════ HEADER ══════════ -->
+<!-- HEADER -->
 <header>
   <div class="logo">
     ALG
-    <div class="logo-divider"></div>
+    <div class="logo-pipe"></div>
     <span class="logo-sub">Dashboard</span>
   </div>
-  <div id="sync-status" style="margin-left:12px"></div>
   <nav>
-    <button class="active" onclick="showPage('dashboard')">Dashboard</button>
-    <button onclick="showPage('projects')">Proyectos</button>
-    <button onclick="showPage('employees')">Equipo</button>
-    <button onclick="showPage('vendors')">Proveedores</button>
-    <button onclick="showPage('expenses')">Gastos</button>
+    <button class="active" onclick="showPage('dashboard',this)">Overview</button>
+    <button onclick="showPage('projects',this)">Proyectos</button>
+    <button onclick="showPage('employees',this)">Equipo</button>
+    <button onclick="showPage('vendors',this)">Proveedores</button>
+    <button onclick="showPage('expenses',this)">Gastos</button>
   </nav>
-  <div class="header-month">
-    <label>Mes activo</label>
-    <input type="month" id="active-month">
-  </div>
-  <div class="header-month" style="margin-left:16px;padding-left:16px;border-left:1px solid rgba(255,255,255,.15)">
-    <label style="color:rgba(255,255,255,.45);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em">Importar cotización</label>
-    <label style="cursor:pointer;display:flex;align-items:center;gap:6px;background:#1a6b3c;color:#fff;padding:5px 12px;border-radius:4px;font-size:.78rem;font-weight:600;font-family:var(--sans)">
-      📥 .json
-      <input type="file" accept=".json" onchange="importCotizacion(event)" style="display:none">
-    </label>
-  </div>
-  <div class="header-month" style="margin-left:16px;padding-left:16px;border-left:1px solid rgba(255,255,255,.15)">
-    <button onclick="exportMonthlyReport()" style="
-      background:var(--gold);color:var(--ink);border:none;padding:6px 14px;
-      border-radius:4px;font-family:var(--sans);font-size:.78rem;font-weight:700;
-      cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .2s"
-      onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-      📊 Reporte del mes
-    </button>
-  </div>
-  <div class="header-month" style="margin-left:16px;padding-left:16px;border-left:1px solid rgba(255,255,255,.15)">
-    <label>TC USD → MXN</label>
-    <input type="number" id="tc-usd" value="17.90" step="0.05" min="1"
-      style="width:80px" oninput="renderAll()" title="Tipo de cambio USD a MXN">
+  <div class="header-right">
+    <div id="sync-status"></div>
+    <div class="header-month" style="display:flex;align-items:center;gap:8px">
+      <label>TC USD</label>
+      <input type="number" id="tc-usd" value="17.90" step="0.05" min="1" style="width:70px" oninput="renderAll()">
+    </div>
+    <div class="header-month" style="display:flex;align-items:center;gap:8px">
+      <label>Mes</label>
+      <input type="month" id="active-month" style="width:130px" oninput="renderAll()">
+    </div>
   </div>
 </header>
 
-<!-- ══════════ DASHBOARD ══════════ -->
+<!-- POPOVER -->
+<div class="popover" id="popover"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ══ DASHBOARD ══ -->
 <div class="page active" id="page-dashboard">
-<div class="dash-wrap">
-
-  <!-- KPIs -->
-  <div class="kpi-row" id="kpi-row"></div>
-
-  <!-- Capacity + Project table -->
-  <div class="two-col">
-    <!-- Capacity -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Carga del equipo</span>
-        <span style="font-size:.72rem;color:var(--ink-soft)">120 hrs efectivas / mes</span>
-      </div>
-      <div class="card-body" id="capacity-panel" style="padding:12px 20px"></div>
-    </div>
-
-    <!-- Project income -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Ingresos por proyecto</span>
-      </div>
-      <div class="card-body" id="income-panel" style="padding:12px 20px"></div>
-    </div>
+  <div class="dash-grid" id="dash-grid">
+    <!-- Rendered by JS -->
   </div>
-
-  <!-- Financial Summary -->
-  <div class="card" style="margin-bottom:24px">
-    <div class="card-header">
-      <span class="card-title">Resumen financiero del mes</span>
-      <span style="font-size:.72rem;color:var(--ink-soft)">Honorarios + IVA 16%</span>
-    </div>
-    <div id="fin-summary"></div>
-  </div>
-
-  <!-- Profitability + Payroll breakdown -->
-  <div class="two-col" style="margin-bottom:24px">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Rentabilidad por proyecto</span>
-        <span style="font-size:.72rem;color:var(--ink-soft)">Ingreso vs costo de equipo</span>
-      </div>
-      <div class="card-body" id="profitability-panel" style="padding:16px 20px"></div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Desglose nómina + IVA</span>
-        <span style="font-size:.72rem;color:var(--ink-soft)">Por colaborador</span>
-      </div>
-      <div class="card-body" id="payroll-panel" style="padding:12px 20px"></div>
-    </div>
-  </div>
-
-  <!-- 🔮 Projection Panel -->
-  <div class="proj-panel" id="proj-panel">
-    <div class="proj-panel-header" onclick="toggleProjPanel()">
-      <span style="font-size:1.1rem">🔮</span>
-      <span class="proj-panel-title">Proyecciones — Cotizaciones pendientes</span>
-      <label style="cursor:pointer;display:flex;align-items:center;gap:6px;background:rgba(124,58,237,.1);color:#7c3aed;padding:5px 12px;border-radius:4px;font-size:.75rem;font-weight:700;font-family:var(--sans)" onclick="event.stopPropagation()">
-        📥 Importar cotización
-        <input type="file" accept=".json" onchange="importPendingQuote(event)" style="display:none">
-      </label>
-      <button onclick="event.stopPropagation();openAddPendingQuote()" style="background:rgba(124,58,237,.1);color:#7c3aed;border:none;padding:5px 12px;border-radius:4px;font-size:.75rem;font-weight:700;font-family:var(--sans);cursor:pointer;margin-left:6px">＋ Manual</button>
-      <span id="pq-count-badge" style="font-size:.72rem;color:rgba(124,58,237,.6);margin-left:8px"></span>
-      <span class="proj-panel-chevron">▼</span>
-    </div>
-    <div class="proj-panel-body">
-
-      <!-- Empty state -->
-      <div id="pq-empty" style="text-align:center;padding:32px 20px;color:var(--ink-soft)">
-        <div style="font-size:2rem;margin-bottom:10px">📋</div>
-        <div style="font-weight:600;margin-bottom:4px">Sin cotizaciones pendientes</div>
-        <div style="font-size:.82rem">Importa un JSON del Cotizador o agrégalas manualmente.</div>
-      </div>
-
-      <!-- Scenarios comparison toggle -->
-      <div id="pq-scen-bar" style="display:none;margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span style="font-size:.75rem;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em">Ver escenario:</span>
-          <button class="scen-tab scen-a on" id="scen-tab-a" onclick="setActiveScenario('A')">A — Selección A</button>
-          <button class="scen-tab scen-b" id="scen-tab-b" onclick="setActiveScenario('B')">B — Selección B</button>
-          <button class="scen-tab" id="scen-tab-all" onclick="setActiveScenario('all')" style="border-color:var(--ink-soft);color:var(--ink-soft)">Todas</button>
-          <span style="font-size:.72rem;color:var(--ink-soft);margin-left:auto">Marca A/B en cada cotización para comparar escenarios</span>
-        </div>
-      </div>
-
-      <!-- Delta KPIs -->
-      <div id="pq-delta" style="display:none" class="delta-row"></div>
-
-      <!-- Pending quotes list -->
-      <div id="pq-list" style="display:none"></div>
-
-      <!-- Projected capacity -->
-      <div id="pq-capacity" style="display:none">
-        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:16px 0 10px">Carga del equipo proyectada</div>
-        <div id="pq-capacity-bars"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Alerts -->
-  <div class="card" id="alerts-card" style="margin-bottom:32px">
-    <div class="card-header">
-      <span class="card-title">⚠️ Alertas operativas</span>
-    </div>
-    <div class="card-body" id="alerts-panel" style="padding:14px 20px"></div>
-  </div>
-
-</div>
 </div>
 
-<!-- ══════════ PROJECTS ══════════ -->
+<!-- ══ PROJECTS ══ -->
 <div class="page" id="page-projects">
-<div class="section-wrap">
-  <div class="section-head">
-    <div>
-      <div class="section-title">Proyectos <small id="proj-count"></small></div>
-    </div>
-    <button class="btn-add" onclick="openModal('project')">＋ Nuevo proyecto</button>
+  <div class="page-bar">
+    <h1>Proyectos <small id="proj-count"></small></h1>
+    <button class="btn gold" onclick="openProjectModal()">＋ Proyecto</button>
   </div>
-  <div class="list-grid" id="projects-list"></div>
-  <div class="empty-state" id="proj-empty" style="display:none">
-    <div class="icon">📋</div>
-    <p>No hay proyectos aún. Crea el primero.</p>
-  </div>
-</div>
+  <div id="projects-list"></div>
+  <div id="proj-empty" style="display:none;padding:60px;text-align:center;color:var(--ink-soft);font-size:.82rem">Sin proyectos. Crea el primero.</div>
 </div>
 
-<!-- ══════════ EMPLOYEES ══════════ -->
+<!-- ══ EMPLOYEES ══ -->
 <div class="page" id="page-employees">
-<div class="section-wrap">
-  <div class="section-head">
-    <div>
-      <div class="section-title">Equipo <small id="emp-count"></small></div>
-    </div>
-    <button class="btn-add" onclick="openModal('employee')">＋ Agregar colaborador</button>
+  <div class="page-bar">
+    <h1>Equipo <small id="emp-count"></small></h1>
+    <button class="btn gold" onclick="openModal('employee')">＋ Colaborador</button>
   </div>
-
-  <!-- Billable team -->
-  <div class="card" style="margin-bottom:24px">
-    <div class="card-header">
-      <span class="card-title">Colaboradores facturables</span>
-      <span style="font-size:.72rem;color:var(--ink-soft)">Asignados a proyectos por % de sus 120 hrs</span>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="corp-table" id="emp-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th class="r">Honorarios/mes</th>
-            <th class="r">Hrs asignadas</th>
-            <th class="r">% Ocupación</th>
-            <th>Estado</th>
-            <th style="width:60px"></th>
-          </tr>
-        </thead>
-        <tbody id="emp-tbody"></tbody>
-      </table>
-    </div>
-    <div class="empty-state" id="emp-empty" style="display:none;padding:30px 20px">
-      <p>Sin colaboradores. Agrega el primero.</p>
-    </div>
-  </div>
-
-  <!-- Corporate (non-billable) -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Empleados corporativos</span>
-      <button class="btn-add outline" style="font-size:.78rem;padding:6px 14px" onclick="openModal('corporate')">＋ Agregar</button>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="corp-table" id="corp-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Rol</th>
-            <th class="r">Honorarios</th>
-            <th class="r">Con IVA</th>
-            <th style="width:60px"></th>
-          </tr>
-        </thead>
-        <tbody id="corp-tbody"></tbody>
-      </table>
-    </div>
-    <div class="empty-state" id="corp-empty" style="display:none;padding:30px 20px">
-      <p>Sin empleados corporativos.</p>
-    </div>
-  </div>
-</div>
+  <div id="employees-section"></div>
 </div>
 
-<!-- ══════════ VENDORS ══════════ -->
+<!-- ══ VENDORS ══ -->
 <div class="page" id="page-vendors">
-<div class="section-wrap">
-  <div class="section-head">
-    <div>
-      <div class="section-title">Proveedores <small id="vendor-count"></small></div>
-    </div>
-    <button class="btn-add" onclick="openModal('vendor')">＋ Agregar proveedor</button>
+  <div class="page-bar">
+    <h1>Proveedores <small id="vendor-count"></small></h1>
+    <button class="btn gold" onclick="openModal('vendor')">＋ Proveedor</button>
   </div>
-
-  <!-- Active filter -->
-  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="vendor-filters">
-    <button class="tmpl-filter active" onclick="filterVendors('all',this)">Todos</button>
-    <button class="tmpl-filter" onclick="filterVendors('active',this)">✅ Activos este mes</button>
-    <button class="tmpl-filter" onclick="filterVendors('inactive',this)">⏸ Inactivos</button>
+  <div style="display:flex;gap:8px;padding:12px 24px;background:var(--bone);border-bottom:1px solid var(--rule)">
+    <button class="btn ghost" onclick="filterVendors('all',this)" style="font-size:.65rem">Todos</button>
+    <button class="btn ghost" onclick="filterVendors('active',this)" style="font-size:.65rem">Activos</button>
+    <button class="btn ghost" onclick="filterVendors('inactive',this)" style="font-size:.65rem">Inactivos</button>
   </div>
-
-  <div class="list-grid" id="vendors-list"></div>
-
-  <div class="empty-state" id="vendor-empty">
-    <div class="icon">📦</div>
-    <p>No hay proveedores registrados.</p>
-  </div>
-
-  <!-- Vendor summary -->
-  <div class="card" id="vendor-summary-card" style="display:none;margin-top:24px">
-    <div class="card-header"><span class="card-title">Resumen de proveedores</span></div>
-    <div class="card-body" id="vendor-summary-body"></div>
-  </div>
-</div>
+  <div id="vendors-list" class="vendor-list"></div>
+  <div id="vendor-empty" style="display:none;padding:60px;text-align:center;color:var(--ink-soft);font-size:.82rem">Sin proveedores.</div>
+  <div id="vendor-summary-card" style="display:none"></div>
 </div>
 
-<!-- ══════════ GASTOS ══════════ -->
+<!-- ══ EXPENSES ══ -->
 <div class="page" id="page-expenses">
-<div class="section-wrap">
-  <div class="section-head">
-    <div>
-      <div class="section-title">Gastos operativos <small id="exp-count"></small></div>
-    </div>
-    <button class="btn-add" onclick="addExpenseRow()">＋ Agregar gasto</button>
+  <div class="page-bar">
+    <h1>Gastos operativos <small id="exp-count"></small></h1>
+    <button class="btn gold" onclick="addExpenseRow()">＋ Gasto</button>
   </div>
-
-  <!-- Category tabs -->
-  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" id="exp-cat-tabs">
-    <button class="tmpl-filter active" onclick="filterExpenses('all',this)">Todos</button>
-    <button class="tmpl-filter" onclick="filterExpenses('suscripcion',this)">🔵 Suscripciones</button>
-    <button class="tmpl-filter" onclick="filterExpenses('servicios',this)">🟣 Servicios</button>
-    <button class="tmpl-filter" onclick="filterExpenses('renta',this)">🟡 Renta</button>
-    <button class="tmpl-filter" onclick="filterExpenses('varios',this)">⚪ Varios</button>
+  <div class="section-table-wrap">
+    <table class="stbl" id="exp-table" style="min-width:700px">
+      <thead>
+        <tr>
+          <th style="width:130px">Categoría</th>
+          <th>Concepto</th>
+          <th class="r" style="width:130px">Monto base</th>
+          <th style="width:70px;text-align:center">IVA</th>
+          <th class="r" style="width:130px">Total</th>
+          <th style="width:90px;text-align:center">Fijo</th>
+          <th style="width:36px"></th>
+        </tr>
+      </thead>
+      <tbody id="exp-tbody"></tbody>
+      <tfoot id="exp-tfoot"></tfoot>
+    </table>
   </div>
-
-  <div class="card" style="margin-bottom:24px">
-    <div style="overflow-x:auto">
-      <table class="exp-table" id="exp-table">
-        <thead>
-          <tr>
-            <th style="width:140px">Categoría</th>
-            <th>Concepto</th>
-            <th class="r" style="width:120px">Monto base</th>
-            <th style="width:70px;text-align:center">IVA</th>
-            <th class="r" style="width:120px">Total</th>
-            <th style="width:90px;text-align:center">Recurrente</th>
-            <th style="width:36px"></th>
-          </tr>
-        </thead>
-        <tbody id="exp-tbody"></tbody>
-        <tfoot id="exp-tfoot"></tfoot>
-      </table>
-    </div>
-    <div class="empty-state" id="exp-empty" style="display:none;padding:40px 20px">
-      <div class="icon">📋</div>
-      <p>Sin gastos registrados. Agrega el primero.</p>
-    </div>
-  </div>
-
-  <!-- Summary by category -->
-  <div class="card" id="exp-summary-card" style="display:none">
-    <div class="card-header"><span class="card-title">Resumen por categoría</span></div>
-    <div class="card-body" id="exp-summary-body" style="padding:16px 20px"></div>
-  </div>
-</div>
+  <div id="exp-empty" style="display:none;padding:60px;text-align:center;color:var(--ink-soft);font-size:.82rem">Sin gastos registrados.</div>
 </div>
 
-<!-- ══════════ MODALS ══════════ -->
 
-<!-- PROJECT MODAL -->
+<!-- ══ MODALS ══ -->
+<!-- PROJECT -->
 <div class="modal-overlay" id="modal-project">
-  <div class="modal">
+  <div class="modal" style="width:620px">
     <h3 id="modal-project-title">Nuevo proyecto</h3>
     <div class="field-row">
-      <div class="field-group">
-        <label>Nombre del proyecto</label>
-        <input type="text" id="p-name" placeholder="Ej. Brand Identity ACME">
-      </div>
-      <div class="field-group">
-        <label>Cliente</label>
-        <input type="text" id="p-client" placeholder="Nombre del cliente">
-      </div>
+      <div class="field-group"><label>Nombre</label><input type="text" id="p-name" placeholder="Brand Identity ACME"></div>
+      <div class="field-group"><label>Cliente</label><input type="text" id="p-client" placeholder="Nombre del cliente"></div>
     </div>
     <div class="field-row">
       <div class="field-group">
         <label>Tipo</label>
-        <select id="p-type">
+        <select id="p-type" onchange="toggleTotalField()">
           <option value="iguala">Iguala mensual</option>
           <option value="oneshot">Proyecto único</option>
         </select>
       </div>
       <div class="field-group">
         <label id="p-income-label">Ingreso mensual</label>
-        <div style="display:flex;gap:6px;align-items:stretch">
-          <select id="p-currency" style="border:1.5px solid var(--paper-3);border-radius:var(--radius);padding:9px 10px;font-family:var(--sans);font-size:.85rem;background:#fff;flex-shrink:0" onchange="updateIncomePreview()">
-            <option value="MXN">MXN $</option>
-            <option value="USD">USD $</option>
+        <div style="display:flex;gap:0">
+          <select id="p-currency" style="border-right:none;width:80px;border:1px solid var(--rule);background:#fff;font-family:var(--mono);font-size:.82rem;padding:9px 8px">
+            <option value="MXN">MXN</option>
+            <option value="USD">USD</option>
           </select>
-          <input type="number" id="p-income" placeholder="0" min="0" step="0.01"
-            style="flex:1" oninput="updateIncomePreview()">
+          <input type="number" id="p-income" placeholder="0" min="0" step="100" style="flex:1;border-left:none">
         </div>
-        <div id="p-income-converted" style="font-size:.72rem;color:var(--ink-soft);margin-top:4px;display:none"></div>
       </div>
     </div>
-    <div class="field-group" id="p-total-wrap" style="display:none">
-      <label>Total del proyecto ($)</label>
+    <div class="field-group" id="p-total-group" style="display:none;margin-bottom:14px">
+      <label>Total del proyecto (oneshot)</label>
       <input type="number" id="p-total" placeholder="0" min="0" step="1000">
     </div>
-    <div class="field-group">
-      <label>Color de identificación</label>
-      <input type="color" id="p-color" value="#1a3a8f" style="height:38px;padding:4px;cursor:pointer">
+    <div style="margin-bottom:14px">
+      <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);display:block;margin-bottom:6px">Color del proyecto</label>
+      <div id="p-color-swatches" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <input type="hidden" id="p-color" value="#c8972a">
     </div>
-
-    <div class="separator"></div>
-    <div style="font-size:.8rem;font-weight:700;margin-bottom:10px;color:var(--ink)">Asignación de equipo</div>
-    <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:12px">Horas de <strong>producción</strong> por colaborador. Las juntas se registran por separado abajo.</div>
-    <div id="p-assignments" class="assign-list"></div>
-    <button class="btn-add outline" style="font-size:.78rem;padding:7px 14px;margin-top:10px;width:100%;justify-content:center" onclick="addAssignRow()">＋ Agregar miembro</button>
-
-    <!-- Juntas row — inline with assignments -->
-    <div style="border:1.5px solid rgba(180,83,9,.25);border-radius:6px;overflow:hidden;margin-top:10px;background:rgba(180,83,9,.03)">
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(180,83,9,.08);border-bottom:1px solid rgba(180,83,9,.15)">
-        <span style="font-size:.78rem;font-weight:700;color:var(--amber)">⏱ Juntas / Reuniones</span>
-        <span style="font-size:.68rem;color:var(--ink-soft);margin-left:auto">Tarifa JUNTAS** · $250/hr + overhead 1.5×</span>
+    <!-- Assignments -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px">Equipo asignado</div>
+      <div class="proj-assign-hdr">
+        <div>Colaborador</div><div>Hrs/mes</div><div>Costo est.</div><div></div>
       </div>
-      <div style="display:grid;grid-template-columns:80px 1fr;gap:10px;padding:10px 12px;align-items:start">
-        <div class="field-group" style="margin:0">
-          <label>Horas</label>
-          <input type="number" id="p-juntas-hrs" placeholder="0" min="0" step="0.5"
-            oninput="updateJuntasPreview()" style="font-family:var(--mono)">
-        </div>
-        <div class="field-group" style="margin:0">
-          <label>Descripción</label>
-          <input type="text" id="p-juntas-desc" placeholder="Ej. Kick-off, revisiones…">
-        </div>
-      </div>
-      <div style="padding:0 12px 10px">
-        <div style="font-size:.68rem;font-weight:700;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">¿A quiénes afecta su capacidad?</div>
-        <div id="p-juntas-members" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-      </div>
-      <div id="p-juntas-preview" style="font-size:.72rem;color:var(--amber);font-family:var(--mono);padding:6px 12px 10px;display:none"></div>
+      <div id="assign-list"></div>
+      <button class="add-row-btn" onclick="addAssignRow()">＋ Agregar colaborador</button>
     </div>
-
+    <!-- Juntas -->
+    <div style="margin-bottom:14px;border:1px solid var(--rule)">
+      <div style="background:var(--bone);padding:8px 12px;border-bottom:1px solid var(--rule);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)">⏱ Juntas / Meetings</div>
+      <div style="display:grid;grid-template-columns:80px 1fr;border-top:none">
+        <div style="border-right:1px solid var(--rule)">
+          <div style="padding:4px 10px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);background:var(--bone);border-bottom:1px solid var(--rule)">Hrs</div>
+          <input type="number" id="p-juntas-hrs" placeholder="0" min="0" step="0.5" class="exp-input" style="padding:9px 10px;display:block;width:100%">
+        </div>
+        <div>
+          <div style="padding:4px 10px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);background:var(--bone);border-bottom:1px solid var(--rule)">Descripción</div>
+          <input type="text" id="p-juntas-desc" placeholder="Kick-off, revisiones…" class="exp-input" style="padding:9px 10px;display:block;width:100%">
+        </div>
+      </div>
+      <!-- Juntas members -->
+      <div style="padding:8px 12px;border-top:1px solid var(--rule)">
+        <div style="font-size:.6rem;color:var(--ink-soft);margin-bottom:6px">Asistentes:</div>
+        <div id="juntas-member-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('project')">Cancelar</button>
-      <button class="btn-save" onclick="saveProject()">Guardar proyecto</button>
+      <button class="btn ghost" onclick="closeModal('project')">Cancelar</button>
+      <button class="btn gold" onclick="saveProject()">Guardar proyecto</button>
     </div>
   </div>
 </div>
 
-<!-- EMPLOYEE MODAL -->
+<!-- EMPLOYEE -->
 <div class="modal-overlay" id="modal-employee">
   <div class="modal">
     <h3>Agregar colaborador</h3>
     <div class="field-row">
-      <div class="field-group">
-        <label>Nombre / Alias</label>
-        <input type="text" id="e-name" placeholder="Ej. Santiago">
-      </div>
-      <div class="field-group">
-        <label>Rol / Especialidad</label>
-        <input type="text" id="e-role" placeholder="Ej. Diseñadora Senior">
-      </div>
+      <div class="field-group"><label>Nombre</label><input type="text" id="e-name" placeholder="Santiago"></div>
+      <div class="field-group"><label>Rol</label><input type="text" id="e-role" placeholder="Diseñadora Senior"></div>
     </div>
     <div class="field-row">
-      <div class="field-group">
-        <label>Honorarios mensuales ($)</label>
-        <input type="number" id="e-salary" placeholder="0" min="0" step="1000">
-      </div>
-      <div class="field-group">
-        <label>Overhead (×) — estándar: 1.5</label>
-        <input type="number" id="e-overhead" value="1.5" min="0" max="3" step="0.1" style="font-family:var(--mono)">
-      </div>
+      <div class="field-group"><label>Honorarios mensuales ($)</label><input type="number" id="e-salary" placeholder="0" min="0" step="1000"></div>
+      <div class="field-group"><label>Overhead (×) — estándar: 1.5</label><input type="number" id="e-overhead" value="1.5" min="0" max="3" step="0.1" style="font-family:var(--mono)"></div>
     </div>
     <div class="field-row">
-      <div class="field-group">
-        <label>Utilidad (%) — estándar: 50</label>
-        <input type="number" id="e-util" value="50" min="0" max="99" step="1" style="font-family:var(--mono)">
-      </div>
-      <div style="padding-top:20px;font-size:.72rem;color:var(--ink-soft)">
-        Implant recomendado: <strong>0–20%</strong>
-      </div>
+      <div class="field-group"><label>Utilidad (%) — estándar: 50</label><input type="number" id="e-util" value="50" min="0" max="99" step="1" style="font-family:var(--mono)"></div>
+      <div style="padding-top:20px;font-size:.72rem;color:var(--ink-soft)">Implant recomendado: 0.2× / 0–20%</div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
       <input type="checkbox" id="e-implant" style="width:16px;height:16px;cursor:pointer">
-      <label for="e-implant" style="font-size:.82rem;cursor:pointer">
-        <strong>Implant</strong> — trabaja exclusivamente en una cuenta cliente (overhead reducido)
-      </label>
+      <label for="e-implant" style="font-size:.8rem;cursor:pointer"><strong>Implant</strong> — trabaja exclusivamente en una cuenta cliente</label>
     </div>
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('employee')">Cancelar</button>
-      <button class="btn-save" onclick="saveEmployee()">Guardar</button>
+      <button class="btn ghost" onclick="closeModal('employee')">Cancelar</button>
+      <button class="btn gold" onclick="saveEmployee()">Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- CORPORATE MODAL -->
-<div class="modal-overlay" id="modal-corporate">
-  <div class="modal">
-    <h3>Empleado corporativo</h3>
-    <div class="field-row">
-      <div class="field-group">
-        <label>Nombre</label>
-        <input type="text" id="c-name" placeholder="Ej. Ana García">
-      </div>
-      <div class="field-group">
-        <label>Rol</label>
-        <input type="text" id="c-role" placeholder="Ej. Directora de Operaciones">
-      </div>
-    </div>
-    <div class="field-group">
-      <label>Costo mensual ($)</label>
-      <input type="number" id="c-salary" placeholder="0" min="0" step="1000">
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('corporate')">Cancelar</button>
-      <button class="btn-save" onclick="saveCorporate()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- VENDOR MODAL -->
-<div class="modal-overlay" id="modal-vendor">
-  <div class="modal">
-    <h3 id="vendor-modal-title">Agregar proveedor</h3>
-    <div class="field-row">
-      <div class="field-group">
-        <label>Nombre / Descripción</label>
-        <input type="text" id="v-name" placeholder="Ej. Fotógrafo freelance">
-      </div>
-      <div class="field-group">
-        <label>Proyecto asignado</label>
-        <select id="v-project"></select>
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field-group">
-        <label>Costo mensual proveedor ($)</label>
-        <input type="number" id="v-cost" placeholder="0" min="0" step="100">
-      </div>
-      <div class="field-group">
-        <label>Lo que se cobra al cliente ($)</label>
-        <input type="number" id="v-charge" placeholder="0" min="0" step="100">
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--paper-3);margin-top:4px">
-      <label style="font-size:.78rem;font-weight:700;color:var(--ink-mid);flex:1">Activo este mes</label>
-      <div style="display:flex;gap:8px">
-        <button id="v-active-auto" onclick="setVendorActiveMode('auto')"
-          style="font-size:.75rem;padding:5px 12px;border-radius:4px;cursor:pointer;font-family:var(--sans);border:1.5px solid;transition:all .15s">
-          🔄 Auto (por proyecto)
-        </button>
-        <button id="v-active-yes" onclick="setVendorActiveMode('yes')"
-          style="font-size:.75rem;padding:5px 12px;border-radius:4px;cursor:pointer;font-family:var(--sans);border:1.5px solid;transition:all .15s">
-          ✅ Forzar activo
-        </button>
-        <button id="v-active-no" onclick="setVendorActiveMode('no')"
-          style="font-size:.75rem;padding:5px 12px;border-radius:4px;cursor:pointer;font-family:var(--sans);border:1.5px solid;transition:all .15s">
-          ⏸ Forzar inactivo
-        </button>
-      </div>
-    </div>
-    <div id="v-active-hint" style="font-size:.72rem;color:var(--ink-soft);margin-top:4px"></div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('vendor')">Cancelar</button>
-      <button class="btn-save" onclick="saveVendor()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT EMPLOYEE MODAL -->
+<!-- EDIT EMPLOYEE -->
 <div class="modal-overlay" id="modal-edit-employee">
-  <div class="modal edit-emp-modal">
+  <div class="modal">
     <h3>Editar colaborador</h3>
     <div class="field-row">
-      <div class="field-group">
-        <label>Nombre</label>
-        <input type="text" id="ee-name" placeholder="Nombre completo">
-      </div>
-      <div class="field-group">
-        <label>Rol</label>
-        <input type="text" id="ee-role" placeholder="Ej. Diseñadora Senior">
-      </div>
+      <div class="field-group"><label>Nombre</label><input type="text" id="ee-name"></div>
+      <div class="field-group"><label>Rol</label><input type="text" id="ee-role"></div>
     </div>
     <div class="field-row">
-      <div class="field-group">
-        <label>Honorarios mensuales ($)</label>
-        <input type="number" id="ee-salary" placeholder="0" min="0" step="500">
-      </div>
+      <div class="field-group"><label>Honorarios ($)</label><input type="number" id="ee-salary" oninput="updateEePreview()"></div>
       <div class="field-group">
         <label>Tipo</label>
         <select id="ee-type">
           <option value="billable">Facturable</option>
-          <option value="combined">Combinado (corp + proyectos)</option>
-          <option value="corporate">Corporativo (solo estructura)</option>
+          <option value="combined">Combinado</option>
+          <option value="corporate">Corporativo</option>
         </select>
       </div>
     </div>
-    <!-- Implant + Overhead -->
-    <div style="border:1.5px solid var(--paper-3);border-radius:6px;overflow:hidden;margin-top:4px">
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--paper-2);border-bottom:1px solid var(--paper-3)">
-        <div style="flex:1">
-          <div style="font-size:.78rem;font-weight:700;color:var(--ink)">Implant</div>
-          <div style="font-size:.68rem;color:var(--ink-soft)">Trabaja exclusivamente en una cuenta cliente</div>
-        </div>
-        <button id="ee-implant-btn" onclick="toggleImplant()"
-          style="padding:5px 16px;border-radius:20px;font-family:var(--sans);font-size:.78rem;font-weight:700;cursor:pointer;border:2px solid var(--paper-3);background:transparent;color:var(--ink-soft);transition:all .15s">
-          No implant
-        </button>
+    <!-- Implant block -->
+    <div class="implant-block">
+      <div class="implant-header">
+        <div style="flex:1"><div style="font-size:.78rem;font-weight:700">Implant</div><div style="font-size:.65rem;color:var(--ink-soft)">Trabaja exclusivamente en una cuenta</div></div>
+        <button id="ee-implant-btn" onclick="toggleImplant()" style="padding:5px 14px;border:1px solid var(--rule);background:transparent;font-family:var(--sans);font-size:.72rem;font-weight:700;cursor:pointer;transition:all .15s">No implant</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 14px">
-        <div class="field-group" style="margin:0">
-          <label>Overhead (×)</label>
-          <input type="number" id="ee-overhead" value="1.5" min="0" max="3" step="0.1"
-            style="font-family:var(--mono)" oninput="updateEePreview()">
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-top:none">
+        <div style="padding:10px 12px;border-right:1px solid var(--rule)">
+          <div class="field-group" style="margin:0"><label>Overhead (×)</label><input type="number" id="ee-overhead" value="1.5" min="0" max="3" step="0.1" style="font-family:var(--mono)" oninput="updateEePreview()"></div>
         </div>
-        <div class="field-group" style="margin:0">
-          <label>Utilidad (%)</label>
-          <input type="number" id="ee-util" value="50" min="0" max="99" step="1"
-            style="font-family:var(--mono)" oninput="updateEePreview()">
+        <div style="padding:10px 12px">
+          <div class="field-group" style="margin:0"><label>Utilidad (%)</label><input type="number" id="ee-util" value="50" min="0" max="99" step="1" style="font-family:var(--mono)" oninput="updateEePreview()"></div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 14px 10px;font-size:.68rem;color:var(--ink-soft)">
-        <div>Estándar: <strong>1.5×</strong> · Implant: <strong>0.2×</strong></div>
-        <div>Estándar: <strong>50%</strong> · Implant: <strong>0–20%</strong></div>
+      <div style="font-size:.6rem;color:var(--ink-soft);padding:4px 12px 8px;display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)">
+        <span>Estándar: 1.5× · Implant: 0.2×</span>
+        <span>Estándar: 50% · Implant: 0–20%</span>
       </div>
     </div>
-
-    <div style="background:var(--paper-2);border-radius:6px;padding:12px 14px;margin-top:8px">
-      <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:6px;font-weight:600">PREVIEW DE COSTO Y PRECIO</div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem">
-        <span>Honorarios base:</span><span id="ee-base-preview" style="font-family:var(--mono)">$0</span>
+    <!-- Preview -->
+    <div style="background:var(--bone);border:1px solid var(--rule);border-top:none;padding:12px">
+      <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px">Preview costo / precio</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--rule)">
+        <div style="padding:8px 10px;border-right:1px solid var(--rule)"><div style="font-size:.58rem;color:var(--ink-soft)">Base</div><div style="font-family:var(--mono);font-size:.82rem" id="ee-base-preview">$0</div></div>
+        <div style="padding:8px 10px;border-right:1px solid var(--rule)"><div style="font-size:.58rem;color:var(--ink-soft)">Overhead (<span id="ee-overhead-label">1.5×</span>)</div><div style="font-family:var(--mono);font-size:.82rem" id="ee-overhead-preview">$0</div></div>
+        <div style="padding:8px 10px;border-right:1px solid var(--rule)"><div style="font-size:.58rem;color:var(--ink-soft)">Costo total+IVA</div><div style="font-family:var(--mono);font-size:.82rem;color:var(--red)" id="ee-total-preview">$0</div></div>
+        <div style="padding:8px 10px"><div style="font-size:.58rem;color:var(--ink-soft)">Precio venta (<span id="ee-util-label">50%</span>)</div><div style="font-family:var(--mono);font-size:.82rem;color:var(--green)" id="ee-precio-preview">$0</div></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-soft)">
-        <span>Overhead (<span id="ee-overhead-label">1.5×</span>):</span>
-        <span id="ee-overhead-preview" style="font-family:var(--mono)">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--amber)">
-        <span>IVA 16%:</span><span id="ee-iva-preview" style="font-family:var(--mono)">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--paper-3)">
-        <span>Costo real ALG (base + OH + IVA):</span>
-        <span id="ee-total-preview" style="font-family:var(--mono);color:var(--accent-2)">$0</span>
-      </div>
-      <div style="height:1px;background:var(--paper-3);margin:6px 0"></div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem">
-        <span>Precio sin IVA (<span id="ee-util-label">50%</span> util):</span>
-        <span id="ee-precio-preview" style="font-family:var(--mono);color:var(--green)">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.88rem;font-weight:700;margin-top:3px">
-        <span>Precio de venta al cliente (+ IVA):</span>
-        <span id="ee-precio-iva-preview" style="font-family:var(--mono);color:var(--green)">$0</span>
-      </div>
+      <div style="display:none"><span id="ee-iva-preview"></span><span id="ee-precio-iva-preview"></span></div>
     </div>
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('edit-employee')">Cancelar</button>
-      <button class="btn-save" onclick="saveEditEmployee()">Guardar cambios</button>
+      <button class="btn ghost" onclick="closeModal('edit-employee')">Cancelar</button>
+      <button class="btn gold" onclick="saveEditEmployee()">Guardar cambios</button>
     </div>
   </div>
 </div>
 
-<!-- ADD PENDING QUOTE MODAL -->
-<div class="modal-overlay" id="modal-pending-quote">
-  <div class="modal" style="width:500px">
-    <h3>📋 Cotización pendiente</h3>
+<!-- VENDOR -->
+<div class="modal-overlay" id="modal-vendor">
+  <div class="modal">
+    <h3 id="vendor-modal-title">Agregar proveedor</h3>
     <div class="field-row">
-      <div class="field-group">
-        <label>Nombre / Proyecto</label>
-        <input type="text" id="pq-name" placeholder="Ej. Brand Identity XYZ">
-      </div>
-      <div class="field-group">
-        <label>Cliente</label>
-        <input type="text" id="pq-client" placeholder="Nombre del cliente">
-      </div>
+      <div class="field-group"><label>Nombre / Descripción</label><input type="text" id="v-name" placeholder="Fotógrafo freelance"></div>
+      <div class="field-group"><label>Proyecto asignado</label><select id="v-project"></select></div>
     </div>
     <div class="field-row">
-      <div class="field-group">
-        <label>Ingreso estimado (MXN, sin IVA)</label>
-        <input type="number" id="pq-income" placeholder="0" min="0" step="1000">
+      <div class="field-group"><label>Costo mensual ($)</label><input type="number" id="v-cost" placeholder="0" min="0" step="100"></div>
+      <div class="field-group"><label>Cobro al cliente ($)</label><input type="number" id="v-charge" placeholder="0" min="0" step="100"></div>
+    </div>
+    <div style="margin-top:4px">
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px">Estado este mes</div>
+      <div style="display:flex;gap:0;border:1px solid var(--rule)">
+        <button id="v-active-auto" onclick="setVendorActiveMode('auto')" style="flex:1;padding:8px;border:none;border-right:1px solid var(--rule);background:var(--bone);font-family:var(--sans);font-size:.7rem;cursor:pointer;transition:all .15s">🔄 Auto</button>
+        <button id="v-active-yes"  onclick="setVendorActiveMode('yes')"  style="flex:1;padding:8px;border:none;border-right:1px solid var(--rule);background:transparent;font-family:var(--sans);font-size:.7rem;cursor:pointer;transition:all .15s">✅ Activo</button>
+        <button id="v-active-no"   onclick="setVendorActiveMode('no')"   style="flex:1;padding:8px;border:none;background:transparent;font-family:var(--sans);font-size:.7rem;cursor:pointer;transition:all .15s">⏸ Inactivo</button>
       </div>
-      <div class="field-group">
-        <label>Probabilidad de cierre</label>
-        <select id="pq-prob" style="appearance:auto">
+      <div id="v-active-hint" style="font-size:.68rem;color:var(--ink-soft);margin-top:6px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal('vendor')">Cancelar</button>
+      <button class="btn gold" onclick="saveVendor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING QUOTE -->
+<div class="modal-overlay" id="modal-pending-quote">
+  <div class="modal" style="width:560px">
+    <h3>📋 Cotización pendiente</h3>
+    <div class="field-row">
+      <div class="field-group"><label>Nombre / Proyecto</label><input type="text" id="pq-name" placeholder="Brand Identity XYZ"></div>
+      <div class="field-group"><label>Cliente</label><input type="text" id="pq-client" placeholder="Nombre del cliente"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group"><label>Ingreso estimado (MXN, sin IVA)</label><input type="number" id="pq-income" placeholder="0" min="0" step="1000"></div>
+      <div class="field-group"><label>Probabilidad</label>
+        <select id="pq-prob">
           <option value="90">Alta — 90%</option>
           <option value="60" selected>Media — 60%</option>
           <option value="30">Baja — 30%</option>
@@ -1235,84 +831,94 @@ select { cursor: pointer; }
         </select>
       </div>
     </div>
-    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:12px 0 8px">Horas por colaborador (opcional)</div>
-    <div id="pq-assign-list" style="display:flex;flex-direction:column;gap:6px"></div>
-    <button class="btn-add outline" style="font-size:.75rem;padding:6px 12px;margin-top:8px" onclick="addPqAssignRow()">＋ Agregar miembro</button>
-
-    <!-- Juntas -->
-    <div style="margin-top:14px;border:1.5px solid rgba(180,83,9,.25);border-radius:6px;overflow:hidden;background:rgba(180,83,9,.03)">
-      <div style="padding:8px 12px;background:rgba(180,83,9,.08);border-bottom:1px solid rgba(180,83,9,.15);font-size:.78rem;font-weight:700;color:var(--amber)">
-        ⏱ Juntas / Reuniones <span style="font-weight:400;color:var(--ink-soft);font-size:.68rem">· tarifa JUNTAS** $250/hr</span>
+    <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin:10px 0 6px">Equipo</div>
+    <div id="pq-assign-list" style="display:flex;flex-direction:column;gap:4px"></div>
+    <button class="add-row-btn" style="border-top:1px dashed var(--rule)" onclick="addPqAssignRow()">＋ Colaborador</button>
+    <div style="margin-top:12px;border:1px solid var(--rule)">
+      <div style="background:var(--bone);padding:7px 12px;border-bottom:1px solid var(--rule);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em">⏱ Juntas · tarifa $250/hr</div>
+      <div style="display:grid;grid-template-columns:80px 1fr">
+        <div style="border-right:1px solid var(--rule);padding:8px 10px"><input type="number" id="pq-juntas-hrs" placeholder="0" min="0" step="0.5" class="exp-input" oninput="updatePqJuntasPreview()" style="display:block;width:100%"></div>
+        <div style="padding:8px 10px"><input type="text" id="pq-juntas-desc" placeholder="Kick-off, presentación…" class="exp-input" style="display:block;width:100%"></div>
       </div>
-      <div style="display:grid;grid-template-columns:80px 1fr;gap:10px;padding:10px 12px">
-        <div class="field-group" style="margin:0">
-          <label>Horas</label>
-          <input type="number" id="pq-juntas-hrs" placeholder="0" min="0" step="0.5" style="font-family:var(--mono)" oninput="updatePqJuntasPreview()">
-        </div>
-        <div class="field-group" style="margin:0">
-          <label>Descripción</label>
-          <input type="text" id="pq-juntas-desc" placeholder="Ej. Kick-off, presentación…">
-        </div>
-      </div>
-      <div id="pq-juntas-preview" style="font-size:.72rem;color:var(--amber);font-family:var(--mono);padding:0 12px 8px;display:none"></div>
+      <div id="pq-juntas-preview" style="font-size:.68rem;color:var(--gold);font-family:var(--mono);padding:4px 12px 6px;display:none;border-top:1px solid var(--rule)"></div>
     </div>
-
-    <!-- Proveedores -->
-    <div style="margin-top:12px">
-      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:8px">📦 Proveedores estimados (opcional)</div>
-      <div id="pq-vendor-list" style="display:flex;flex-direction:column;gap:6px"></div>
-      <button class="btn-add outline" style="font-size:.75rem;padding:6px 12px;margin-top:6px;color:var(--amber);border-color:rgba(180,83,9,.3)" onclick="addPqVendorRow()">＋ Agregar proveedor</button>
+    <div style="margin-top:10px">
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px">📦 Proveedores</div>
+      <div id="pq-vendor-list" style="display:flex;flex-direction:column;gap:4px"></div>
+      <button class="add-row-btn" onclick="addPqVendorRow()">＋ Proveedor</button>
     </div>
-
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('pending-quote')">Cancelar</button>
-      <button class="btn-save" style="background:#7c3aed" onclick="savePendingQuote()">Guardar cotización</button>
+      <button class="btn ghost" onclick="closeModal('pending-quote')">Cancelar</button>
+      <button class="btn gold" onclick="savePendingQuote()">Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- IMPORT COTIZACION MODAL -->
+<!-- IMPORT COTIZACION -->
 <div class="modal-overlay" id="modal-import-cot">
-  <div class="modal" style="width:600px;max-width:96vw">
-    <h3>📥 Importar cotización aprobada</h3>
-    <div id="import-meta" style="background:var(--paper);border-radius:6px;padding:12px 14px;margin-bottom:16px;font-size:.84rem"></div>
-
-    <!-- Service selector if multiple -->
-    <div id="import-svc-wrap" style="margin-bottom:14px;display:none">
-      <div class="field-group">
-        <label>Selecciona qué servicio importar</label>
-        <select id="import-svc-select" style="appearance:auto" onchange="renderImportMapping()"></select>
-      </div>
-    </div>
-
-    <!-- Mapping table -->
-    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">
-      Mapeo de colaboradores
-    </div>
-    <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:10px">
-      Cada colaborador del cotizador se asigna al perfil del Dashboard. Verifica el mapeo automático.
-    </div>
-    <div id="import-mapping" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
-
-    <!-- Outsourcing preview -->
-    <div id="import-outsrc-wrap" style="margin-top:14px;display:none">
-      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">Proveedores a crear</div>
-      <div id="import-outsrc-list"></div>
-    </div>
-
-    <!-- Income preview -->
-    <div id="import-income-preview" style="margin-top:14px;background:var(--green-bg);border-radius:6px;padding:12px 14px;font-size:.84rem"></div>
-
+  <div class="modal">
+    <h3>📥 Importar cotización</h3>
+    <div id="import-cot-body"></div>
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('import-cot')">Cancelar</button>
-      <button class="btn-save" style="background:var(--green)" onclick="confirmImportCotizacion()">✅ Crear proyecto</button>
+      <button class="btn ghost" onclick="closeModal('import-cot')">Cancelar</button>
+      <button class="btn gold" onclick="confirmImportCot()">Importar</button>
     </div>
   </div>
 </div>
 
-<div id="toast"></div>
 
 <script>
+
+// ── NULL-SAFE ELEMENT HELPER ─────────────────────────────────────────────
+// Returns a dummy element proxy when an element doesn't exist in this theme.
+// Prevents crashes when JS from the dark theme runs in the minimal theme.
+const _nullEl = new Proxy({}, {
+  get(t, prop) {
+    if (prop === 'innerHTML' || prop === 'textContent' || prop === 'value') return '';
+    if (prop === 'style') return new Proxy({}, { set() { return true; }, get() { return ''; } });
+    if (prop === 'classList') return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
+    if (prop === 'checked') return false;
+    if (prop === 'options') return [];
+    if (prop === 'length') return 0;
+    return () => {};
+  },
+  set() { return true; }
+});
+function safeEl(id) {
+  return document.getElementById(id) || _nullEl;
+}
+
+// Patch getElementById to never return null for known-missing elements
+// (only in this minimal theme context)
+const _origGetById = document.getElementById.bind(document);
+document.getElementById = function(id) {
+  return _origGetById(id) || _nullEl;
+};
+
+// ── POPOVER ─────────────────────────────────────────────────────────────
+let _popHideTimer = null;
+
+function showPopover(event, title, rows) {
+  clearTimeout(_popHideTimer);
+  const pop = document.getElementById('popover');
+  pop.innerHTML = '<div class="popover-title">' + title + '</div>'
+    + rows.map(r => '<div class="popover-row"><span class="popover-key">'
+      + r[0] + '</span><span class="popover-val">' + r[1] + '</span></div>').join('');
+  
+  const x = event.clientX + 14;
+  const y = event.clientY + 14;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  pop.style.left = (x + 260 > vw ? x - 280 : x) + 'px';
+  pop.style.top  = (y + 200 > vh ? y - 220 : y) + 'px';
+  pop.classList.add('show');
+}
+
+function hidePopover() {
+  _popHideTimer = setTimeout(() => {
+    document.getElementById('popover').classList.remove('show');
+  }, 120);
+}
+
 // ══════════════════════════════════════════════════════
 // SUPABASE CONFIG
 // Reemplaza estos valores con los de tu proyecto en supabase.com
@@ -1713,6 +1319,159 @@ function miniRing(pct, color) {
 }
 
 // ── DASHBOARD ──────────────────────────
+
+// ── MINIMAL GRID RENDER ─────────────────────────────────────────────────
+function _renderDashboardOld() {
+  const grid = document.getElementById('dash-grid');
+  if (!grid) return;
+
+  const inc     = totalMonthlyIncomeBase();
+  const incIva  = inc * (1 + IVA);
+  const payroll = totalMonthlyPayroll(true);
+  const vendors = totalVendorCost();
+  const exps    = totalExpenses();
+  const egress  = payroll + vendors + exps;
+  const margin  = incIva - egress;
+  const mPct    = incIva > 0 ? (margin / incIva * 100).toFixed(1) : '0';
+  const projCnt = projects.length;
+  const empCnt  = employees.length;
+
+  // ── Section: KPIs ──────────────────────────────────────────────────────
+  const kpiSection = `
+    <div class="cell cell-title">
+      <h2>Resumen del mes</h2>
+      <small>${getMonthLabel()}</small>
+    </div>
+    <div class="cell cell-kpi"
+      onmouseenter="showPopover(event,'KPIs — Ingresos',[        ['Base (sin IVA)','${fmt(inc)}'],        ['IVA 16%','${fmt(inc*IVA)}'],        ['Con IVA','${fmt(incIva)}']      ])"
+      onmouseleave="hidePopover()">
+      <span class="cell-label">Ingresos totales</span>
+      <div class="cell-val gold">${fmt(incIva)}</div>
+      <div class="cell-sub">Con IVA · ${projCnt} proyecto${projCnt!==1?'s':''}</div>
+    </div>
+    <div class="cell cell-kpi"
+      onmouseenter="showPopover(event,'Egresos del mes',[        ['Nómina+IVA','${fmt(payroll)}'],        ['Proveedores','${fmt(vendors)}'],        ['Gastos op.','${fmt(exps)}']      ])"
+      onmouseleave="hidePopover()">
+      <span class="cell-label">Egresos totales</span>
+      <div class="cell-val ${margin>=0?'':'red'}">${fmt(egress)}</div>
+      <div class="cell-sub">Nómina + proveedores + gastos</div>
+    </div>
+    <div class="cell cell-kpi"
+      onmouseenter="showPopover(event,'Margen neto',[        ['Ingresos c/IVA','${fmt(incIva)}'],        ['Total egresos','${fmt(egress)}'],        ['Margen','${fmt(margin)}'],        ['% margen','${mPct}%']      ])"
+      onmouseleave="hidePopover()">
+      <span class="cell-label">Margen neto</span>
+      <div class="cell-val ${margin>=0?'green':'red'}">${fmt(margin)}</div>
+      <div class="cell-sub">${mPct}% del ingreso total</div>
+    </div>
+    <div class="cell cell-kpi"
+      onmouseenter="showPopover(event,'Equipo',[        ['Colaboradores',String(empCnt)],        ['Proyectos activos',String(projCnt)],        ['Capacidad total',empCnt*CAP+' hrs']      ])"
+      onmouseleave="hidePopover()">
+      <span class="cell-label">Equipo activo</span>
+      <div class="cell-val">${empCnt}</div>
+      <div class="cell-sub">${projCnt} proyectos activos</div>
+    </div>`;
+
+  // ── Section: Projects income ────────────────────────────────────────────
+  const projCells = projects.map(p => {
+    const inc2  = incomeInMXN(p);
+    const incI2 = inc2 * (1 + IVA);
+    const cost  = getProjectTeamCost(p) * (1 + IVA);
+    const marg  = incI2 - cost;
+    const mPct2 = incI2 > 0 ? (marg/incI2*100).toFixed(1) : '0';
+    const type  = p.type === 'iguala' ? 'Iguala' : 'Único';
+    return `<div class="cell cell-proj"
+      onmouseenter="showPopover(event,'${p.name}',[        ['Cliente','${p.client||'—'}'],        ['Tipo','${type}'],        ['Ingreso base','${fmt(inc2)}'],        ['Con IVA','${fmt(incI2)}'],        ['Costo equipo','${fmt(cost)}'],        ['Margen','${fmt(marg)}'],        ['% Margen','${mPct2}%']      ])"
+      onmouseleave="hidePopover()"
+      onclick="openProjectModal(projects.find(x=>x.id===${p.id}))">
+      <div class="cell-proj-name">
+        <div class="cell-proj-bar" style="background:${p.color}"></div>
+        ${p.name}
+      </div>
+      <div class="cell-proj-meta">${p.client||''} · ${type}</div>
+      <div class="cell-proj-income">${fmt(incI2)}<span style="font-size:.7rem;color:var(--ink-soft);margin-left:6px">c/IVA</span></div>
+    </div>`;
+  }).join('');
+  
+  const projSection = projects.length ? `
+    <div class="cell cell-title">
+      <h2>Ingresos por proyecto</h2>
+      <small>${fmt(incIva)} total</small>
+    </div>
+    ${projCells}
+    ${projects.length % 3 !== 0 ? '<div class="cell" style="grid-column:span '+(3-(projects.length%3))+'"></div>' : ''}
+  ` : '';
+
+  // ── Section: Financial summary ──────────────────────────────────────────
+  const iva = inc * IVA;
+  const payBase = totalMonthlyPayroll(false);
+  const payIva  = payBase * IVA;
+
+  const finSection = `
+    <div class="cell cell-title">
+      <h2>Resumen financiero</h2>
+    </div>
+    <div class="cell" style="grid-column:span 4"
+      onmouseenter="showPopover(event,'Ingresos',[        ['Base sin IVA','${fmt(inc)}'],        ['IVA 16%','${fmt(iva)}'],        ['Total con IVA','${fmt(incIva)}']      ])" onmouseleave="hidePopover()">
+      <span class="cell-label">Ingresos c/IVA</span>
+      <div class="cell-val gold">${fmt(incIva)}</div>
+      <div class="cell-sub">Base ${fmt(inc)} + IVA ${fmt(iva)}</div>
+    </div>
+    <div class="cell" style="grid-column:span 4"
+      onmouseenter="showPopover(event,'Nómina',[        ['Honorarios base','${fmt(payBase)}'],        ['IVA 16%','${fmt(payIva)}'],        ['Total','${fmt(payroll)}']      ])" onmouseleave="hidePopover()">
+      <span class="cell-label">Nómina + IVA</span>
+      <div class="cell-val">${fmt(payroll)}</div>
+      <div class="cell-sub">Base ${fmt(payBase)} + IVA ${fmt(payIva)}</div>
+    </div>
+    <div class="cell" style="grid-column:span 4"
+      onmouseenter="showPopover(event,'Margen neto',[        ['Ingresos','${fmt(incIva)}'],        ['Nómina','−${fmt(payroll)}'],        ['Proveedores','−${fmt(vendors)}'],        ['Gastos','−${fmt(exps)}'],        ['Margen','${fmt(margin)}'],        ['% sobre ingresos','${mPct}%']      ])" onmouseleave="hidePopover()">
+      <span class="cell-label">Margen neto</span>
+      <div class="cell-val ${margin>=0?'green':'red'}">${fmt(margin)}</div>
+      <div class="cell-sub">${mPct}% · Gastos: ${fmt(exps)} · Prov: ${fmt(vendors)}</div>
+    </div>`;
+
+  // ── Section: Team capacity ──────────────────────────────────────────────
+  const capCells = employees.map(emp => {
+    const hrs  = getEmployeeAssignedHrs(emp.id);
+    const pct  = (hrs / CAP * 100).toFixed(0);
+    const over = hrs > CAP_MAX;
+    const warn = hrs > CAP;
+    const col  = over ? 'var(--red)' : warn ? 'var(--gold)' : 'var(--green)';
+    const st   = capStatus(hrs / CAP);
+    const { bg, color } = getAvatarStyle(emp.name);
+    const initials = emp.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="cap-member"
+      onmouseenter="showPopover(event,'${emp.name}',[        ['Rol','${emp.role||'—'}'],        ['Hrs asignadas','${hrs}/${CAP}'],        ['% ocupación','${pct}%'],        ['Honorarios','${fmt(emp.salary||0)}'],        ['Overhead','${getEmpOverhead(emp)}×'],        ['Utilidad','${(getEmpUtil(emp)*100).toFixed(0)}%']      ])"
+      onmouseleave="hidePopover()"
+      onclick="openEditEmployee(${emp.id},'billable')">
+      <div class="cap-member-name">
+        <div class="avatar" style="background:${bg};color:${color};font-size:.55rem;width:22px;height:22px">${initials}</div>
+        ${emp.name}${emp.implant?'<span class="badge ok" style="font-size:.55rem">Impl.</span>':''}
+      </div>
+      <div class="cap-bar-wrap">
+        <div class="cap-bar-fill" style="width:${Math.min(100,pct)}%;background:${col}"></div>
+      </div>
+      <div class="cap-pct" style="color:${col}">${hrs}/${CAP} hrs · ${pct}%</div>
+    </div>`;
+  }).join('');
+
+  const capSection = employees.length ? `
+    <div class="cell cell-title">
+      <h2>Carga del equipo</h2>
+      <small>${CAP} hrs efectivas / mes · hover para detalles</small>
+    </div>
+    <div class="cell" style="grid-column:span 12;padding:0">
+      <div class="cap-grid">${capCells}</div>
+    </div>
+  ` : '';
+
+  grid.innerHTML = kpiSection + projSection + finSection + capSection;
+}
+
+function getMonthLabel() {
+  const m = document.getElementById('active-month');
+  if (!m || !m.value) return new Date().toLocaleDateString('es-MX',{month:'long',year:'numeric'});
+  return new Date(m.value+'-02').toLocaleDateString('es-MX',{month:'long',year:'numeric'});
+}
 function renderDashboard() {
   renderKPIs();
   renderCapacityPanel();
@@ -1772,7 +1531,7 @@ function renderKPIs() {
     }
   ];
 
-  document.getElementById('kpi-row').innerHTML = kpis.map(k => `
+  const _kpiRow = document.getElementById('kpi-row'); if (!_kpiRow) return; _kpiRow.innerHTML = kpis.map(k => `
     <div class="kpi-card">
       <div class="kpi-label">${k.label}</div>
       <div class="kpi-val ${k.cls}">${k.val}</div>
@@ -1784,6 +1543,7 @@ function renderKPIs() {
 
 function renderCapacityPanel() {
   const panel = document.getElementById('capacity-panel');
+  if (!panel) return;
   if (!employees.length) {
     panel.innerHTML = '<p style="font-size:.82rem;color:var(--ink-soft);padding:8px 0">Sin colaboradores registrados.</p>';
     return;
@@ -1847,6 +1607,7 @@ function renderCapacityPanel() {
 
 function renderIncomePanel() {
   const panel = document.getElementById('income-panel');
+  if (!panel) return;
   const totalInc = projects.reduce((s,p) => s + (p.income||0), 0);
   if (!projects.length) {
     panel.innerHTML = '<p style="font-size:.82rem;color:var(--ink-soft);padding:8px 0">Sin proyectos registrados.</p>';
@@ -1875,6 +1636,8 @@ function renderIncomePanel() {
 }
 
 function renderAlerts() {
+  const alertsPanel = document.getElementById('alerts-panel');
+  if (!alertsPanel) return; // minimal mode — no alerts panel
   const alerts = [];
 
   // Over-capacity
@@ -1994,6 +1757,7 @@ function renderFinancialSummary() {
 function renderProfitability() {
   const panel = document.getElementById('profitability-panel');
   if (!panel) return;
+  if (!panel) return;
   if (!projects.length) {
     panel.innerHTML = '<p style="font-size:.82rem;color:var(--ink-soft)">Sin proyectos.</p>';
     return;
@@ -2040,6 +1804,7 @@ function renderProfitability() {
 function renderPayrollBreakdown() {
   const panel = document.getElementById('payroll-panel');
   if (!panel) return;
+  if (!panel) return;
 
   // Combinados: aparecen en employees Y corporates — mostrar solo una vez
   const corpOnly  = corporates.filter(c => !c._combined);
@@ -2084,241 +1849,92 @@ function renderPayrollBreakdown() {
 }
 
 // ── PROJECTS VIEW ──────────────────────
-function renderProjects() {
-  const list   = document.getElementById('projects-list');
-  const empty  = document.getElementById('proj-empty');
-  const count  = document.getElementById('proj-count');
-  count.textContent = projects.length ? `(${projects.length})` : '';
 
-  if (!projects.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+function renderProjects() {
+  const list  = document.getElementById('projects-list');
+  const empty = document.getElementById('proj-empty');
+  const count = document.getElementById('proj-count');
+  if (!list) return;
+  count.textContent = projects.length ? '(' + projects.length + ')' : '';
+  if (!projects.length) { list.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display = 'none';
 
-  list.innerHTML = projects.map(p => {
-    const hrs    = getProjectHrs(p);
-    const st     = capStatus(hrs / (employees.length * CAP || 1));
-    const assignHTML = (p.assignments||[]).map(a => {
-      const emp = employees.find(e => e.id === a.empId);
-      if (!emp) return '';
-      const h   = a.hrs || 0;
-      const pct = CAP > 0 ? (h / CAP * 100).toFixed(0) : 0;
-      const hasBd = a.breakdown && a.breakdown.length > 0;
-      const empForCost = employees.find(e => e.id === a.empId);
-      const empRateForDetail = empForCost ? (empForCost.salary||0)/CAP : 0;
-      const bdDetail = hasBd ? `<div style="margin:4px 0 2px 20px">
-        <div style="display:grid;grid-template-columns:auto 1fr repeat(3,70px);gap:0;border:1px solid var(--paper-3);border-radius:4px;overflow:hidden;margin-bottom:2px">
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);border-right:1px solid var(--paper-3)">Tipo</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);border-right:1px solid var(--paper-3)">Actividad</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);text-align:right;border-right:1px solid var(--paper-3)">Hrs</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);text-align:right;border-right:1px solid var(--paper-3)">C.Dir</div>
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:var(--ink-soft);padding:3px 6px;background:var(--paper-2);text-align:right">C.Total</div>
-        </div>
-        ${a.breakdown.map(b=>{
-          const calc  = calcHrCost(b.hrs||0, empRateForDetail, getEmpOverhead(empForCost), getEmpUtil(empForCost));
-          const isJ   = false; // juntas now in separate block
-          return `<div style="display:grid;grid-template-columns:auto 1fr repeat(3,70px);gap:0;border:1px solid var(--paper-3);border-top:none;border-radius:0;overflow:hidden">
-            <div style="padding:4px 6px;border-right:1px solid var(--paper-2);display:flex;align-items:center">
-              <span style="font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;
-                background:${isJ?'rgba(180,83,9,.1)':'rgba(26,58,143,.07)'};
-                color:${isJ?'var(--amber)':'var(--accent)'};
-                border:1px solid ${isJ?'rgba(180,83,9,.25)':'rgba(26,58,143,.15)'}">
-                ${isJ?'⏱ Junta':'⚙ Prod'}
-              </span>
-            </div>
-            <div style="padding:4px 6px;font-size:.72rem;color:var(--ink-mid);border-right:1px solid var(--paper-2)">${b.desc||'—'}</div>
-            <div style="padding:4px 6px;font-family:var(--mono);font-size:.7rem;text-align:right;border-right:1px solid var(--paper-2)">${(b.hrs||0).toFixed(1)}</div>
-            <div style="padding:4px 6px;font-family:var(--mono);font-size:.7rem;color:var(--ink-soft);text-align:right;border-right:1px solid var(--paper-2)">${fmt(calc.costoDir)}</div>
-            <div style="padding:4px 6px;font-family:var(--mono);font-size:.7rem;font-weight:600;text-align:right">${fmt(calc.costoTotal)}</div>
-          </div>`;
-        }).join('')}
-      </div>` : '';
-      return `<div style="padding:5px 0;border-bottom:1px solid var(--paper-2)">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="dot" style="background:${p.color}"></div>
-            <span style="font-size:.82rem;font-weight:600">${emp.name}</span>
-            <span style="font-size:.72rem;color:var(--ink-soft)">${emp.role||''}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-family:var(--mono);font-size:.78rem;color:var(--ink-soft)">${h.toFixed(0)} hrs</span>
-            <span class="badge ok">${pct}% cap.</span>
-          </div>
-        </div>
-        ${bdDetail}
-      </div>`;
-    }).join('');
-
-    const projVendors = vendors.filter(v => v.projectId === p.id && isVendorActive(v));
-    const allProjVendors = vendors.filter(v => v.projectId === p.id);
-    const vendorHTML = allProjVendors.length ? allProjVendors.map(v => {
-      const vActive = isVendorActive(v);
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--paper-2);opacity:${vActive?1:.45}">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:.9rem">📦</span>
-          <span style="font-size:.82rem">${v.name}</span>
-          ${!vActive ? '<span style="font-size:.65rem;background:var(--paper-2);color:var(--ink-soft);padding:1px 6px;border-radius:10px">⏸ Inactivo este mes</span>' : ''}
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-family:var(--mono);font-size:.78rem;color:var(--accent-2)">${vActive?'Costo: '+fmt(v.cost):'—'}</span>
-          <span style="font-family:var(--mono);font-size:.78rem;color:var(--green)">${vActive?'Cobro: '+fmt(v.charge):'—'}</span>
-        </div>
-      </div>`;
-    }).join('') : '';
-
-    const teamCost = getProjectTeamCost(p);
-    const teamCostIva  = teamCost * (1 + IVA);   // costo real pagado (con IVA)
-    const vendorCostP  = projVendors.reduce((s,v) => s + (v.cost||0), 0);
-    const totalCostP   = teamCostIva + vendorCostP;
-    // Ingreso: en MXN + IVA cobrado al cliente
-    const incomeMXN    = incomeInMXN(p);
-    const incomeConIva = incomeMXN * (1 + IVA);
-    const marginP      = incomeConIva - totalCostP;
-    const marginPctP   = incomeConIva > 0 ? (marginP / incomeConIva * 100).toFixed(1) : '—';
-
-    return `<div class="list-card" id="proj-card-${p.id}">
-      <div class="list-card-header" onclick="toggleCard('proj-card-${p.id}')">
-        <div class="toggle-icon">+</div>
-        <div class="dot" style="background:${p.color}"></div>
-        <span class="list-card-name">${p.name}</span>
-        <span style="font-size:.78rem;color:var(--ink-soft);margin-right:8px">${p.client||''}</span>
-        ${p._fromCotizador ? '<span class="badge ok" style="font-size:.62rem;flex-shrink:0">📋 Cotizador</span>' : ''}
-        <span class="badge ${p.type==='iguala'?'fixed':'oneshot'}">${p.type==='iguala'?'Iguala':'Único'}</span>
-        <span style="font-family:var(--mono);font-size:.85rem;font-weight:600;color:var(--green);margin-left:auto">
-          ${p.currency==='USD' ? fmtUSD(p.income||0) : fmt(incomeInMXN(p))}${p.type==='iguala'?'/mes':''}
-        </span>
-        <div style="display:flex;gap:6px;margin-left:16px">
-          <button class="btn-add outline" style="font-size:.72rem;padding:5px 12px" onclick="event.stopPropagation();editProject(${p.id})">✏ Editar</button>
-          <button class="btn-add outline" style="font-size:.72rem;padding:5px 12px;color:var(--accent-2);border-color:rgba(232,49,42,.3)" onclick="event.stopPropagation();deleteProject(${p.id})">✕</button>
-        </div>
-      </div>
-      <div class="list-card-body">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px">
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">${p.type==='iguala'?'Ingreso / mes':'Ingreso proyecto'}</div>
-            <div style="font-family:var(--mono);font-size:.95rem;color:var(--green);font-weight:600">
-              ${p.currency==='USD' ? fmtUSD(p.income||0) : fmt(incomeMXN)}
-            </div>
-            <div style="font-size:.68rem;color:var(--ink-soft)">
-              + IVA: <span style="font-family:var(--mono);color:var(--green)">${fmt(incomeConIva)}</span>
-              ${p.currency==='USD' ? `<br>≈ ${fmt(incomeMXN)} MXN` : ''}
-            </div>
-          </div>
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">Costo equipo + IVA</div>
-            <div style="font-family:var(--mono);font-size:.95rem;font-weight:600">${fmt(teamCostIva)}</div>
-            <div style="font-size:.68rem;color:var(--ink-soft)">Base: <span style="font-family:var(--mono)">${fmt(teamCost)}</span></div>
-          </div>
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">Costo total</div>
-            <div style="font-family:var(--mono);font-size:.95rem;font-weight:600">${fmt(totalCostP)}</div>
-            ${vendorCostP > 0 ? `<div style="font-size:.68rem;color:var(--ink-soft)">Proveedores: <span style="font-family:var(--mono)">${fmt(vendorCostP)}</span></div>` : ''}
-          </div>
-          <div>
-            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:3px">Margen bruto</div>
-            <div style="font-family:var(--mono);font-size:.95rem;font-weight:600;color:${marginP>=0?'var(--green)':'var(--accent-2)'}">${fmt(marginP)}</div>
-            <div style="font-size:.68rem;color:${marginP>=0?'var(--green)':'var(--accent-2)'}">${marginPctP !== '—' ? marginPctP+'%' : '—'}</div>
-          </div>
-        </div>
-        ${p._fromCotizador && p._cotizadorRef ? `
-          <div style="background:rgba(26,58,143,.06);border-radius:6px;padding:10px 14px;margin-bottom:14px;display:flex;gap:20px;flex-wrap:wrap">
-            <div style="font-size:.62rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.06em;width:100%;margin-bottom:4px">Referencia Cotizador</div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Overhead</div><div style="font-family:var(--mono);font-size:.82rem">${p._cotizadorRef.overhead}×</div></div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Utilidad</div><div style="font-family:var(--mono);font-size:.82rem">${(p._cotizadorRef.utilidad*100).toFixed(0)}%</div></div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Costo ALG</div><div style="font-family:var(--mono);font-size:.82rem">${fmt(p._cotizadorRef.costoAlg)}</div></div>
-            <div><div style="font-size:.62rem;color:var(--ink-soft)">Precio cotizado</div><div style="font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--accent)">${fmt(p._cotizadorRef.precioLleno)}</div></div>
-          </div>` : ''}
-        ${assignHTML ? `
-          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">Equipo asignado</div>
-          ${assignHTML}
-        ` : '<p style="font-size:.82rem;color:var(--ink-soft)">Sin miembros asignados.</p>'}
-        ${p.juntas && p.juntas.hrs > 0 ? (() => {
-          const jc = calcHrCost(p.juntas.hrs, JUNTAS_RATE);
-          const mnames = (p.juntas.members||[]).map(mid => {
-            const em = employees.find(e=>e.id===mid);
-            return em ? em.name : '—';
-          }).join(', ');
-          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--paper-2);background:rgba(180,83,9,.03)">
-            <div style="display:flex;align-items:center;gap:8px">
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>
-              <div>
-                <span style="font-size:.82rem;font-weight:600;color:var(--amber)">⏱ Juntas</span>
-                <span style="font-size:.75rem;color:var(--ink-soft);margin-left:6px">${p.juntas.desc||'Meetings'}</span>
-                ${mnames ? `<div style="font-size:.68rem;color:var(--ink-soft)">Afecta: ${mnames}</div>` : ''}
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
-              <span style="font-size:.72rem;color:var(--ink-soft)">C.Dir <span style="font-family:var(--mono)">${fmt(jc.costoDir)}</span></span>
-              <span style="font-size:.72rem;color:var(--ink-soft)">Overhead <span style="font-family:var(--mono)">${fmt(jc.overhead)}</span></span>
-              <span style="font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--amber)">${p.juntas.hrs} hrs · ${fmt(jc.costoTotal)}</span>
-            </div>
-          </div>`;
-        })() : ''}
-        ${vendorHTML ? `
-          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:14px 0 8px">Proveedores</div>
-          ${vendorHTML}
-        ` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  list.innerHTML = '<div class="section-table-wrap"><table class="stbl" style="min-width:900px">'
+    + '<thead><tr>'
+    + '<th style="width:4px;padding:0"></th>'
+    + '<th>Proyecto</th><th>Cliente</th><th>Tipo</th>'
+    + '<th class="r">Ingreso</th><th class="r">Costo equipo</th>'
+    + '<th class="r">Margen</th><th class="r">% Margen</th>'
+    + '<th style="width:80px"></th>'
+    + '</tr></thead><tbody>'
+    + projects.map(p => {
+        const inc   = incomeInMXN(p) * (1+IVA);
+        const cost  = getProjectTeamCost(p) * (1+IVA);
+        const marg  = inc - cost;
+        const mPct  = inc > 0 ? (marg/inc*100).toFixed(1) : '0';
+        const type  = p.type==='iguala' ? 'Iguala' : 'Único';
+        return '<tr>'
+          + '<td style="padding:0;width:4px"><div style="width:4px;height:100%;min-height:40px;background:' + p.color + '"></div></td>'
+          + '<td><strong>' + p.name + '</strong></td>'
+          + '<td style="color:var(--ink-soft)">' + (p.client||'—') + '</td>'
+          + '<td><span class="badge ' + (p.type==='iguala'?'fixed':'oneshot') + '">' + type + '</span></td>'
+          + '<td class="r">' + fmt(inc) + '</td>'
+          + '<td class="r">' + fmt(cost) + '</td>'
+          + '<td class="r" style="color:' + (marg>=0?'var(--green)':'var(--red)') + ';font-weight:600">' + fmt(marg) + '</td>'
+          + '<td class="r" style="color:' + (marg>=0?'var(--green)':'var(--red)') + '">' + mPct + '%</td>'
+          + '<td style="text-align:right;padding:6px 10px">'
+          + '<button class="btn ghost" style="font-size:.6rem;padding:4px 8px" onclick="openProjectModal(projects.find(x=>x.id===' + p.id + '))">✏</button> '
+          + '<button class="btn danger" style="font-size:.6rem;padding:4px 8px" onclick="deleteProject(' + p.id + ')">✕</button>'
+          + '</td></tr>';
+      }).join('')
+    + '</tbody></table></div>';
 }
 
-// ── EMPLOYEES VIEW ─────────────────────
 function renderEmployees() {
-  // Billable
-  const tbody   = document.getElementById('emp-tbody');
-  const empty   = document.getElementById('emp-empty');
-  const table   = document.getElementById('emp-table');
+  const sec   = document.getElementById('employees-section');
+  const count = document.getElementById('emp-count');
+  if (!sec) return;
+  count.textContent = employees.length ? '(' + employees.length + ')' : '';
+  const combined = employees.filter(e => corporates.some(c=>c.id===e.id&&c._combined));
+  const billable = employees.filter(e => !corporates.some(c=>c.id===e.id&&c._combined));
+  const corpOnly = corporates.filter(c => !c._combined);
 
-  if (!employees.length) {
-    table.style.display = 'none'; empty.style.display = 'block';
-  } else {
-    table.style.display = ''; empty.style.display = 'none';
-    tbody.innerHTML = employees.map(emp => {
-      const hrs = getEmployeeAssignedHrs(emp.id);
-      const pct = hrs / CAP;
-      const st  = capStatus(pct);
-      return `<tr>
-        <td><strong>${emp.name}</strong>${emp.role ? `<span style="font-size:.75rem;color:var(--ink-soft);margin-left:8px">${emp.role}</span>` : ''}</td>
-        <td class="r">${fmt(emp.salary||0)}</td>
-        <td class="r">${hrs.toFixed(0)} / ${CAP}</td>
-        <td class="r">${fmtPct(pct)}</td>
-        <td><span class="badge ${st.cls}">${st.label}</span></td>
-        <td class="r" style="color:var(--amber)">${fmt((emp.salary||0)*1.16)}</td>
-        <td style="display:flex;gap:4px">
-          <button class="btn-del-row" onclick="openEditEmployee(${emp.id},'billable')" title="Editar" style="color:var(--accent);font-size:.8rem">✏</button>
-          <button class="btn-del-row" onclick="deleteEmployee(${emp.id})">×</button>
-        </td>
-      </tr>`;
+  function makeTable(title, list, isCorp) {
+    if (!list.length) return '';
+    const rows = list.map(emp => {
+      const hrs = isCorp ? 0 : getEmployeeAssignedHrs(emp.id);
+      const pct = (hrs/CAP*100).toFixed(0);
+      const st  = capStatus(hrs/CAP);
+      const av  = getAvatarStyle(emp.name);
+      const ini = emp.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const delFn = isCorp ? 'deleteCorporate' : 'deleteEmployee';
+      const edCat = isCorp ? "'corporate'" : "'billable'";
+      return '<tr>'
+        + '<td style="padding:6px 10px"><div class="avatar" style="background:'+av.bg+';color:'+av.color+'">'+ini+'</div></td>'
+        + '<td><strong>'+emp.name+'</strong>'+(emp.implant?'<span class="badge ok" style="margin-left:6px">Implant</span>':'')+'</td>'
+        + '<td style="color:var(--ink-soft);font-size:.78rem">'+(emp.role||'—')+'</td>'
+        + '<td class="r">'+fmt(emp.salary||0)+'</td>'
+        + '<td class="r">'+(isCorp?'—':hrs+'/'+CAP)+'</td>'
+        + '<td class="r">'+(isCorp?'—':pct+'%')+'</td>'
+        + '<td><span class="badge '+st.cls+'">'+st.label+'</span></td>'
+        + '<td style="text-align:right;padding:6px 10px">'
+        + '<button class="btn ghost" style="font-size:.6rem;padding:4px 8px" onclick="openEditEmployee('+emp.id+','+edCat+')">✏</button> '
+        + '<button class="btn danger" style="font-size:.6rem;padding:4px 8px" onclick="'+delFn+'('+emp.id+')">✕</button>'
+        + '</td></tr>';
     }).join('');
+    return '<div style="background:var(--bone);padding:10px 20px;border-bottom:2px solid var(--rule-heavy);border-top:1px solid var(--rule);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft)">'+title+'</div>'
+      + '<div class="section-table-wrap"><table class="stbl"><thead><tr>'
+      + '<th style="width:36px"></th><th>Nombre</th><th>Rol</th>'
+      + '<th class="r">Honorarios</th><th class="r">Hrs asig.</th><th class="r">% Cap.</th>'
+      + '<th>Estado</th><th style="width:80px"></th>'
+      + '</tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
-  document.getElementById('emp-count').textContent = employees.length ? `(${employees.length})` : '';
-
-  // Corporate
-  const ctbody = document.getElementById('corp-tbody');
-  const cempty = document.getElementById('corp-empty');
-  const ctable = document.getElementById('corp-table');
-
-  if (!corporates.length) {
-    ctable.style.display = 'none'; cempty.style.display = 'block';
-  } else {
-    ctable.style.display = ''; cempty.style.display = 'none';
-    ctbody.innerHTML = corporates.map(c => `<tr>
-      <td>
-        <strong>${c.name}</strong>
-        ${c._combined ? '<span class="badge warn" style="margin-left:8px;font-size:.62rem">Combinado</span>' : ''}
-      </td>
-      <td>${c.role||'—'}</td>
-      <td class="r">${fmt(c.salary||0)}</td>
-      <td class="r" style="color:var(--amber)">${fmt((c.salary||0)*1.16)}</td>
-      <td style="display:flex;gap:4px">
-        <button class="btn-del-row" onclick="openEditEmployee(${c.id},'corporate')" title="Editar" style="color:var(--accent);font-size:.8rem">✏</button>
-        <button class="btn-del-row" onclick="deleteCorporate(${c.id})">×</button>
-      </td>
-    </tr>`).join('');
-  }
+  sec.innerHTML =
+    makeTable('Colaboradores facturables', billable, false) +
+    makeTable('Combinados', combined, false) +
+    makeTable('Corporativos', corpOnly, true);
 }
 
-// ── VENDORS VIEW ───────────────────────
-let _vendorFilter = 'all';
 function filterVendors(f, btn) {
   _vendorFilter = f;
   document.querySelectorAll('#vendor-filters button').forEach(b => b.classList.remove('active'));
@@ -2331,81 +1947,60 @@ function renderVendors() {
   const empty   = document.getElementById('vendor-empty');
   const sumCard = document.getElementById('vendor-summary-card');
   const count   = document.getElementById('vendor-count');
-  count.textContent = vendors.length ? `(${vendors.length})` : '';
-
+  if (!list) return;
+  count.textContent = vendors.length ? '('+vendors.length+')' : '';
   const filtered = vendors.filter(v => {
-    if (_vendorFilter === 'active')   return isVendorActive(v);
-    if (_vendorFilter === 'inactive') return !isVendorActive(v);
+    if (_vendorFilter==='active')   return isVendorActive(v);
+    if (_vendorFilter==='inactive') return !isVendorActive(v);
     return true;
   });
-
   if (!vendors.length) {
-    list.innerHTML = ''; empty.style.display = 'block'; sumCard.style.display = 'none'; return;
+    list.innerHTML=''; empty.style.display='block';
+    if (sumCard) sumCard.style.display='none'; return;
   }
-  empty.style.display = 'none'; sumCard.style.display = 'block';
-
-  list.innerHTML = filtered.map(v => {
-    const proj    = projects.find(p => p.id === v.projectId);
-    const active  = isVendorActive(v);
-    const margin  = (v.charge||0) - (v.cost||0);
-    const modeLabel = {auto:'🔄 Auto', yes:'✅ Forzar activo', no:'⏸ Inactivo'}[v.activeMode||'auto'];
-    const activeBadge = active
-      ? '<span class="badge ok" style="font-size:.65rem">✅ Activo</span>'
-      : '<span class="badge idle" style="font-size:.65rem">⏸ Inactivo</span>';
-
-    return `<div class="list-card" style="margin-bottom:10px">
-      <div class="list-card-header" style="cursor:default;padding-left:0;overflow:hidden">
-        <div class="proj-punch" style="background:${proj ? proj.color : 'var(--paper-3)'};margin-right:14px"></div>
-        <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
-          <span style="font-size:.95rem;font-weight:700">${v.name||'Sin nombre'}</span>
-          ${proj ? `<span style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--ink-soft)"><span class="dot" style="background:${proj.color}"></span>${proj.name}</span>` : '<span style="font-size:.78rem;color:var(--ink-soft)">Sin proyecto</span>'}
-          ${activeBadge}
-          <span style="font-size:.72rem;color:var(--ink-soft)">${modeLabel}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
-          <div style="text-align:right">
-            <div style="font-family:var(--mono);font-size:.82rem;color:var(--accent-2)">Costo: ${fmt(v.cost||0)}</div>
-            <div style="font-family:var(--mono);font-size:.82rem;color:var(--green)">Cobro: ${fmt(v.charge||0)}</div>
-            <div style="font-family:var(--mono);font-size:.75rem;color:${margin>=0?'var(--green)':'var(--accent-2)'};font-weight:600">Margen: ${fmt(margin)}</div>
-          </div>
-          <button class="btn-add outline" style="font-size:.72rem;padding:5px 12px" onclick="editVendor(${v.id})">✏ Editar</button>
-          <button class="btn-add outline" style="font-size:.72rem;padding:5px 12px;color:var(--accent-2);border-color:rgba(232,49,42,.3)" onclick="deleteVendor(${v.id})">✕</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Summary — only active vendors
-  const activeVendors  = vendors.filter(isVendorActive);
-  const totalCostA     = activeVendors.reduce((s,v) => s + (v.cost||0), 0);
-  const totalChargeA   = activeVendors.reduce((s,v) => s + (v.charge||0), 0);
-  const totalMarginA   = totalChargeA - totalCostA;
-  const inactiveCount  = vendors.filter(v=>!isVendorActive(v)).length;
-
-  document.getElementById('vendor-summary-body').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
-      <div>
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:4px">Costo activos este mes</div>
-        <div style="font-family:var(--mono);font-size:1.1rem;color:var(--accent-2)">${fmt(totalCostA)}</div>
-        <div style="font-size:.7rem;color:var(--ink-soft);margin-top:2px">${activeVendors.length} activo(s)</div>
-      </div>
-      <div>
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:4px">Cobro total a clientes</div>
-        <div style="font-family:var(--mono);font-size:1.1rem;color:var(--green)">${fmt(totalChargeA)}</div>
-      </div>
-      <div>
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:4px">Margen bruto</div>
-        <div style="font-family:var(--mono);font-size:1.1rem;color:${totalMarginA>=0?'var(--green)':'var(--accent-2)'};font-weight:600">${fmt(totalMarginA)}</div>
-      </div>
-      <div>
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:4px">Inactivos / en pausa</div>
-        <div style="font-family:var(--mono);font-size:1.1rem;color:var(--ink-soft)">${inactiveCount}</div>
-        <div style="font-size:.7rem;color:var(--ink-soft);margin-top:2px">no suman al mes</div>
-      </div>
-    </div>`;
+  empty.style.display='none';
+  list.innerHTML = '<table class="stbl" style="min-width:700px"><thead><tr>'
+    + '<th style="width:4px;padding:0"></th><th>Proveedor</th><th>Proyecto</th>'
+    + '<th class="r">Costo</th><th class="r">Cobro</th><th class="r">Margen</th>'
+    + '<th>Estado</th><th style="width:80px"></th>'
+    + '</tr></thead><tbody>'
+    + filtered.map(v => {
+        const proj   = projects.find(p=>p.id===v.projectId);
+        const active = isVendorActive(v);
+        const margin = (v.charge||0)-(v.cost||0);
+        const mLabel = {auto:'Auto',yes:'Forzar activo',no:'Inactivo'}[v.activeMode||'auto'];
+        const activeLbl = active ? 'Activo' : 'Inactivo';
+        const activeCls = active ? 'ok' : 'idle';
+        const punchColor = proj ? proj.color : 'var(--rule)';
+        return '<tr'+(active?'':' style="opacity:.5"')+'>'
+          + '<td style="padding:0;width:4px"><div style="width:4px;min-height:38px;background:'+punchColor+'"></div></td>'
+          + '<td><strong>'+(v.name||'Sin nombre')+'</strong></td>'
+          + '<td style="color:var(--ink-soft)">'+(proj?proj.name:'—')+'</td>'
+          + '<td class="r">'+fmt(v.cost||0)+'</td>'
+          + '<td class="r">'+fmt(v.charge||0)+'</td>'
+          + '<td class="r" style="color:'+(margin>=0?'var(--green)':'var(--red)')+'">'+fmt(margin)+'</td>'
+          + '<td><span class="badge '+activeCls+'">'+activeLbl+'</span> <span style="font-size:.6rem;color:var(--ink-soft)">'+mLabel+'</span></td>'
+          + '<td style="text-align:right;padding:6px 10px">'
+          + '<button class="btn ghost" style="font-size:.6rem;padding:4px 8px" onclick="editVendor('+v.id+')">✏</button> '
+          + '<button class="btn danger" style="font-size:.6rem;padding:4px 8px" onclick="deleteVendor('+v.id+')">✕</button>'
+          + '</td></tr>';
+      }).join('')
+    + '</tbody></table>';
+  const activeV = vendors.filter(isVendorActive);
+  const totCostA = activeV.reduce((s,v)=>s+(v.cost||0),0);
+  const totChgA  = activeV.reduce((s,v)=>s+(v.charge||0),0);
+  const totMargA = totChgA - totCostA;
+  if (sumCard) {
+    sumCard.style.display='block';
+    sumCard.innerHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);border-left:1px solid var(--rule);border-top:1px solid var(--rule)">'
+      + [['Activos',activeV.length+' de '+vendors.length],['Costo activos',fmt(totCostA)],['Cobro activos',fmt(totChgA)],['Margen',fmt(totMargA)]]
+        .map(p=>'<div style="padding:14px 18px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)">'
+          +'<div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px">'+p[0]+'</div>'
+          +'<div style="font-family:var(--mono);font-size:1.1rem">'+p[1]+'</div></div>').join('')
+      + '</div>';
+  }
 }
 
-// ── RENDER ALL ─────────────────────────
 function renderAll() {
   renderDashboard();
   renderProjects();
@@ -2472,6 +2067,7 @@ function openProjectModal(proj) {
 }
 
 function clearProjectModal() {
+  if (!document.getElementById('p-name')) return; // modal not present
   ['p-name','p-client','p-income','p-total'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('p-type').value     = 'iguala';
   document.getElementById('p-currency').value = 'MXN';
@@ -2489,7 +2085,7 @@ function clearProjectModal() {
 document.getElementById('p-type').addEventListener('change', toggleTotalField);
 function toggleTotalField() {
   const isOne = document.getElementById('p-type').value === 'oneshot';
-  document.getElementById('p-total-wrap').style.display = isOne ? 'block' : 'none';
+  (document.getElementById('p-total-wrap')||{style:{}}).style.display = isOne ? 'block' : 'none';
 }
 
 function updateIncomePreview() {
@@ -2895,13 +2491,15 @@ function deleteEmployee(id) {
 
 // ── CORPORATE CRUD ─────────────────────
 function saveCorporate() {
-  const name = document.getElementById('c-name').value.trim();
+  const _cn = document.getElementById('c-name');
+  if (!_cn) { showToast('Modal corporativo no disponible en esta versión'); return; }
+  const name = _cn.value.trim();
   if (!name) { showToast('Escribe el nombre'); return; }
   corporates.push({
     id:     uid(),
     name,
-    role:   document.getElementById('c-role').value.trim(),
-    salary: parseFloat(document.getElementById('c-salary').value) || 0,
+    role:   (document.getElementById('c-role')||{value:''}).value.trim(),
+    salary: parseFloat((document.getElementById('c-salary')||{value:''}).value) || 0,
   });
   closeModal('corporate');
   renderAll();
@@ -3132,6 +2730,7 @@ function renderExpensesTable() {
 function renderExpensesSummary() {
   const card = document.getElementById('exp-summary-card');
   const body = document.getElementById('exp-summary-body');
+  if (!card || !body) return;
   if (!expenses.length) { card.style.display='none'; return; }
   card.style.display = 'block';
 
@@ -3218,11 +2817,11 @@ function projectedEmpHrs(empId) {
 
 function renderProjectionPanel() {
   const hasQuotes = pendingQuotes.length > 0;
-  document.getElementById('pq-empty').style.display      = hasQuotes ? 'none' : 'block';
-  document.getElementById('pq-scen-bar').style.display   = hasQuotes ? 'flex' : 'none';
-  document.getElementById('pq-delta').style.display      = hasQuotes ? 'grid' : 'none';
-  document.getElementById('pq-list').style.display       = hasQuotes ? 'block' : 'none';
-  document.getElementById('pq-capacity').style.display   = hasQuotes && employees.length ? 'block' : 'none';
+  (document.getElementById('pq-empty')||{style:{}}).style.display      = hasQuotes ? 'none' : 'block';
+  (document.getElementById('pq-scen-bar')||{style:{}}).style.display   = hasQuotes ? 'flex' : 'none';
+  (document.getElementById('pq-delta')||{style:{}}).style.display      = hasQuotes ? 'grid' : 'none';
+  (document.getElementById('pq-list')||{style:{}}).style.display       = hasQuotes ? 'block' : 'none';
+  (document.getElementById('pq-capacity')||{style:{}}).style.display   = hasQuotes && employees.length ? 'block' : 'none';
 
   const badge = document.getElementById('pq-count-badge');
   badge.textContent = hasQuotes ? `(${pendingQuotes.length} pendiente${pendingQuotes.length>1?'s':''})` : '';
@@ -3252,7 +2851,7 @@ function renderPqDelta() {
     return `<span style="color:${col};font-weight:700">${sign}${fmt(d)}</span>`;
   };
 
-  document.getElementById('pq-delta').innerHTML = `
+  const _pq_deltaEl = document.getElementById('pq-delta'); if(_pq_deltaEl) _pq_deltaEl.innerHTML = `
     <div class="delta-card">
       <div class="delta-label">Ingresos proyectados</div>
       <div class="delta-current">${fmt(curInc)} actual</div>
@@ -3486,7 +3085,7 @@ function savePendingQuote() {
     pendingQuotes.push(q);
   }
   closeModal('pending-quote');
-  if (!_projPanelOpen) { _projPanelOpen = true; document.getElementById('proj-panel').classList.add('open'); }
+  if (!_projPanelOpen) { _projPanelOpen = true; (document.getElementById('proj-panel')||{classList:{add:()=>{},remove:()=>{},toggle:()=>{}}}).classList.add('open'); }
   renderProjectionPanel();
   showToast(`"${name}" agregada a proyecciones ✓`);
 }
@@ -3523,7 +3122,7 @@ function importPendingQuote(event) {
         });
       });
 
-      if (!_projPanelOpen) { _projPanelOpen = true; document.getElementById('proj-panel').classList.add('open'); }
+      if (!_projPanelOpen) { _projPanelOpen = true; (document.getElementById('proj-panel')||{classList:{add:()=>{},remove:()=>{},toggle:()=>{}}}).classList.add('open'); }
       renderProjectionPanel();
       showToast(`${data.servicios.length} cotización(es) importada(s) a proyecciones ✓`);
     } catch(err) {
@@ -3599,7 +3198,7 @@ function openImportModal() {
   if (!d) return;
 
   // Meta block
-  document.getElementById('import-meta').innerHTML = `
+  const _import_metaEl = document.getElementById('import-meta'); if(_import_metaEl) _import_metaEl.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
       <div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Cliente</div><strong>${d.meta.cliente}</strong></div>
       <div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Proyecto</div><strong>${d.meta.proyecto}</strong></div>
@@ -3714,7 +3313,7 @@ function renderImportMapping() {
   }
 
   // Income preview
-  document.getElementById('import-income-preview').innerHTML = `
+  const _import_income_previewEl = document.getElementById('import-income-preview'); if(_import_income_previewEl) _import_income_previewEl.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <div>
         <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--green);font-weight:700;margin-bottom:2px">Ingreso que entra al Dashboard</div>
@@ -4115,6 +3714,7 @@ if (SUPABASE_READY) {
   showSyncStatus('offline');
   renderAll();
 }
+
 </script>
 </body>
 </html>
