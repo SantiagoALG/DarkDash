@@ -1311,9 +1311,28 @@ select { cursor: pointer; }
 
 <!-- IMPORT COTIZACION MODAL -->
 <div class="modal-overlay" id="modal-import-cot">
-  <div class="modal" style="width:600px;max-width:96vw">
-    <h3>📥 Importar cotización aprobada</h3>
-    <div id="import-meta" style="background:var(--paper);border-radius:6px;padding:12px 14px;margin-bottom:16px;font-size:.84rem"></div>
+  <div class="modal" style="width:620px;max-width:96vw">
+    <h3>📥 Importar cotización</h3>
+
+    <!-- Meta -->
+    <div id="import-meta" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:.84rem"></div>
+
+    <!-- ── DESTINATION TOGGLE ── -->
+    <div style="margin-bottom:18px">
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px">¿A dónde va esta cotización?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button id="import-dest-project" onclick="setImportDest('project')"
+          style="padding:12px 14px;border-radius:10px;border:1.5px solid rgba(38,166,91,.4);background:rgba(38,166,91,.12);cursor:pointer;font-family:var(--sans);text-align:left;transition:all .15s">
+          <div style="font-size:.85rem;font-weight:700;color:#4ade80;margin-bottom:3px">✅ Proyecto aprobado</div>
+          <div style="font-size:.7rem;color:var(--ink-soft)">Ya está vendido — crear proyecto, asignar equipo y proveedores</div>
+        </button>
+        <button id="import-dest-pipeline" onclick="setImportDest('pipeline')"
+          style="padding:12px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;font-family:var(--sans);text-align:left;transition:all .15s">
+          <div style="font-size:.85rem;font-weight:700;color:var(--ink-mid);margin-bottom:3px">🔵 Pipeline / Oportunidad</div>
+          <div style="font-size:.7rem;color:var(--ink-soft)">En proceso — guardar como oportunidad con valor y proveedores estimados</div>
+        </button>
+      </div>
+    </div>
 
     <!-- Service selector if multiple -->
     <div id="import-svc-wrap" style="margin-bottom:14px;display:none">
@@ -1323,27 +1342,57 @@ select { cursor: pointer; }
       </div>
     </div>
 
-    <!-- Mapping table -->
-    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">
-      Mapeo de colaboradores
+    <!-- Project-only: collaborator mapping -->
+    <div id="import-project-fields">
+      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">Mapeo de colaboradores</div>
+      <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:10px">Cada colaborador del cotizador se asigna al perfil del Dashboard.</div>
+      <div id="import-mapping" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto"></div>
     </div>
-    <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:10px">
-      Cada colaborador del cotizador se asigna al perfil del Dashboard. Verifica el mapeo automático.
-    </div>
-    <div id="import-mapping" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
 
-    <!-- Outsourcing preview -->
+    <!-- Pipeline-only: stage + probability + close date -->
+    <div id="import-pipeline-fields" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:4px">
+        <div class="field-group" style="margin:0">
+          <label>Etapa inicial</label>
+          <select id="import-pl-stage">
+            <option value="prospecto">🔵 Prospecto</option>
+            <option value="propuesta" selected>🟡 Propuesta enviada</option>
+            <option value="negociacion">🟠 Negociación</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>Probabilidad</label>
+          <select id="import-pl-prob">
+            <option value="90">Alta — 90%</option>
+            <option value="60" selected>Media — 60%</option>
+            <option value="30">Baja — 30%</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>Cierre estimado</label>
+          <input type="date" id="import-pl-date">
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:10px">
+        <label>Responsable</label>
+        <select id="import-pl-owner">
+          <option value="">— Sin asignar —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Outsourcing preview (both destinations) -->
     <div id="import-outsrc-wrap" style="margin-top:14px;display:none">
-      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">Proveedores a crear</div>
+      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:6px" id="import-outsrc-title">Proveedores</div>
       <div id="import-outsrc-list"></div>
     </div>
 
-    <!-- Income preview -->
-    <div id="import-income-preview" style="margin-top:14px;background:var(--green-bg);border-radius:6px;padding:12px 14px;font-size:.84rem"></div>
+    <!-- Value preview (both) -->
+    <div id="import-income-preview" style="margin-top:14px;border-radius:8px;padding:12px 14px;font-size:.84rem"></div>
 
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('import-cot')">Cancelar</button>
-      <button class="btn-save" style="background:var(--green)" onclick="confirmImportCotizacion()">✅ Crear proyecto</button>
+      <button class="btn-save" id="import-confirm-btn" onclick="confirmImportCotizacion()">✅ Crear proyecto</button>
     </div>
   </div>
 </div>
@@ -3927,6 +3976,7 @@ function showPage(id) {
 // ══════════════════════════════════════════════════════
 let _importData    = null;  // parsed JSON
 let _importMapping = {};    // { cotizadorName: dashboardEmpId | null }
+let _importDest    = 'project'; // 'project' | 'pipeline'
 
 // Fuzzy name match: find best employee by name similarity
 function fuzzyMatch(cotName, empList) {
@@ -3972,9 +4022,49 @@ function importCotizacion(event) {
   reader.readAsText(file);
 }
 
+function setImportDest(dest) {
+  _importDest = dest;
+  const projBtn = document.getElementById('import-dest-project');
+  const plBtn   = document.getElementById('import-dest-pipeline');
+  const projFld = document.getElementById('import-project-fields');
+  const plFld   = document.getElementById('import-pipeline-fields');
+  const confBtn = document.getElementById('import-confirm-btn');
+  const outsrcTitle = document.getElementById('import-outsrc-title');
+
+  if (dest === 'project') {
+    projBtn.style.borderColor  = 'rgba(38,166,91,.5)';
+    projBtn.style.background   = 'rgba(38,166,91,.15)';
+    plBtn.style.borderColor    = 'rgba(255,255,255,.1)';
+    plBtn.style.background     = 'rgba(255,255,255,.04)';
+    if (projFld) projFld.style.display = 'block';
+    if (plFld)   plFld.style.display   = 'none';
+    if (confBtn) { confBtn.textContent = '✅ Crear proyecto'; confBtn.style.background = 'var(--green)'; }
+    if (outsrcTitle) outsrcTitle.textContent = 'Proveedores a crear';
+  } else {
+    plBtn.style.borderColor    = 'rgba(100,144,220,.5)';
+    plBtn.style.background     = 'rgba(100,144,220,.12)';
+    projBtn.style.borderColor  = 'rgba(255,255,255,.1)';
+    projBtn.style.background   = 'rgba(255,255,255,.04)';
+    if (projFld) projFld.style.display = 'none';
+    if (plFld)   plFld.style.display   = 'block';
+    // Populate owner dropdown
+    const ownerSel = document.getElementById('import-pl-owner');
+    if (ownerSel) {
+      ownerSel.innerHTML = '<option value="">— Sin asignar —</option>'
+        + employees.map(e => '<option value="' + e.id + '">' + e.name + '</option>').join('');
+    }
+    if (confBtn) { confBtn.textContent = '🔵 Agregar al pipeline'; confBtn.style.background = '#6490dc'; }
+    if (outsrcTitle) outsrcTitle.textContent = 'Proveedores estimados (incluidos en la oportunidad)';
+  }
+}
+
 function openImportModal() {
   const d = _importData;
   if (!d) return;
+
+  // Reset to project dest by default
+  _importDest = 'project';
+  setImportDest('project');
 
   // Meta block
   document.getElementById('import-meta').innerHTML = `
