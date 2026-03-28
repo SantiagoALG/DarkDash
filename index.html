@@ -224,7 +224,7 @@ header nav button.active { color: var(--gold); border-bottom-color: var(--gold);
 }
 
 /* ── POPOVER ── */
-.popover {
+.tip-panel {
   position: fixed; z-index: 500;
   background: var(--ink); color: #fff;
   border: 1px solid rgba(255,255,255,.1);
@@ -235,7 +235,7 @@ header nav button.active { color: var(--gold); border-bottom-color: var(--gold);
   transition: opacity .15s, transform .15s;
   font-size: .78rem; line-height: 1.6;
 }
-.popover.show {
+.tip-panel.show {
   opacity: 1; transform: translateY(0);
   pointer-events: auto;
 }
@@ -555,7 +555,7 @@ header nav button.active { color: var(--gold); border-bottom-color: var(--gold);
 </header>
 
 <!-- POPOVER -->
-<div class="popover" id="popover"></div>
+<div class="tip-panel" id="tip-panel"></div>
 
 <!-- TOAST -->
 <div id="toast"></div>
@@ -900,7 +900,7 @@ let _popHideTimer = null;
 
 function showPopover(event, title, rows) {
   clearTimeout(_popHideTimer);
-  const pop = document.getElementById('popover');
+  const pop = document.getElementById('tip-panel');
   pop.innerHTML = '<div class="popover-title">' + title + '</div>'
     + rows.map(r => '<div class="popover-row"><span class="popover-key">'
       + r[0] + '</span><span class="popover-val">' + r[1] + '</span></div>').join('');
@@ -913,9 +913,9 @@ function showPopover(event, title, rows) {
   pop.classList.add('show');
 }
 
-function hidePopover() {
+function hideTip() {
   _popHideTimer = setTimeout(() => {
-    document.getElementById('popover').classList.remove('show');
+    document.getElementById('tip-panel').classList.remove('show');
   }, 120);
 }
 
@@ -1321,7 +1321,7 @@ function miniRing(pct, color) {
 // ── DASHBOARD ──────────────────────────
 
 // ── MINIMAL GRID RENDER ─────────────────────────────────────────────────
-function _renderDashboardOld() {
+function renderDashboard() {
   const grid = document.getElementById('dash-grid');
   if (!grid) return;
 
@@ -1344,28 +1344,28 @@ function _renderDashboardOld() {
     </div>
     <div class="cell cell-kpi"
       onmouseenter="showPopover(event,'KPIs — Ingresos',[        ['Base (sin IVA)','${fmt(inc)}'],        ['IVA 16%','${fmt(inc*IVA)}'],        ['Con IVA','${fmt(incIva)}']      ])"
-      onmouseleave="hidePopover()">
+      onmouseleave="hideTip()">
       <span class="cell-label">Ingresos totales</span>
       <div class="cell-val gold">${fmt(incIva)}</div>
       <div class="cell-sub">Con IVA · ${projCnt} proyecto${projCnt!==1?'s':''}</div>
     </div>
     <div class="cell cell-kpi"
       onmouseenter="showPopover(event,'Egresos del mes',[        ['Nómina+IVA','${fmt(payroll)}'],        ['Proveedores','${fmt(vendors)}'],        ['Gastos op.','${fmt(exps)}']      ])"
-      onmouseleave="hidePopover()">
+      onmouseleave="hideTip()">
       <span class="cell-label">Egresos totales</span>
       <div class="cell-val ${margin>=0?'':'red'}">${fmt(egress)}</div>
       <div class="cell-sub">Nómina + proveedores + gastos</div>
     </div>
     <div class="cell cell-kpi"
       onmouseenter="showPopover(event,'Margen neto',[        ['Ingresos c/IVA','${fmt(incIva)}'],        ['Total egresos','${fmt(egress)}'],        ['Margen','${fmt(margin)}'],        ['% margen','${mPct}%']      ])"
-      onmouseleave="hidePopover()">
+      onmouseleave="hideTip()">
       <span class="cell-label">Margen neto</span>
       <div class="cell-val ${margin>=0?'green':'red'}">${fmt(margin)}</div>
       <div class="cell-sub">${mPct}% del ingreso total</div>
     </div>
     <div class="cell cell-kpi"
       onmouseenter="showPopover(event,'Equipo',[        ['Colaboradores',String(empCnt)],        ['Proyectos activos',String(projCnt)],        ['Capacidad total',empCnt*CAP+' hrs']      ])"
-      onmouseleave="hidePopover()">
+      onmouseleave="hideTip()">
       <span class="cell-label">Equipo activo</span>
       <div class="cell-val">${empCnt}</div>
       <div class="cell-sub">${projCnt} proyectos activos</div>
@@ -1381,7 +1381,7 @@ function _renderDashboardOld() {
     const type  = p.type === 'iguala' ? 'Iguala' : 'Único';
     return `<div class="cell cell-proj"
       onmouseenter="showPopover(event,'${p.name}',[        ['Cliente','${p.client||'—'}'],        ['Tipo','${type}'],        ['Ingreso base','${fmt(inc2)}'],        ['Con IVA','${fmt(incI2)}'],        ['Costo equipo','${fmt(cost)}'],        ['Margen','${fmt(marg)}'],        ['% Margen','${mPct2}%']      ])"
-      onmouseleave="hidePopover()"
+      onmouseleave="hideTip()"
       onclick="openProjectModal(projects.find(x=>x.id===${p.id}))">
       <div class="cell-proj-name">
         <div class="cell-proj-bar" style="background:${p.color}"></div>
@@ -1411,19 +1411,19 @@ function _renderDashboardOld() {
       <h2>Resumen financiero</h2>
     </div>
     <div class="cell" style="grid-column:span 4"
-      onmouseenter="showPopover(event,'Ingresos',[        ['Base sin IVA','${fmt(inc)}'],        ['IVA 16%','${fmt(iva)}'],        ['Total con IVA','${fmt(incIva)}']      ])" onmouseleave="hidePopover()">
+      onmouseenter="showPopover(event,'Ingresos',[        ['Base sin IVA','${fmt(inc)}'],        ['IVA 16%','${fmt(iva)}'],        ['Total con IVA','${fmt(incIva)}']      ])" onmouseleave="hideTip()">
       <span class="cell-label">Ingresos c/IVA</span>
       <div class="cell-val gold">${fmt(incIva)}</div>
       <div class="cell-sub">Base ${fmt(inc)} + IVA ${fmt(iva)}</div>
     </div>
     <div class="cell" style="grid-column:span 4"
-      onmouseenter="showPopover(event,'Nómina',[        ['Honorarios base','${fmt(payBase)}'],        ['IVA 16%','${fmt(payIva)}'],        ['Total','${fmt(payroll)}']      ])" onmouseleave="hidePopover()">
+      onmouseenter="showPopover(event,'Nómina',[        ['Honorarios base','${fmt(payBase)}'],        ['IVA 16%','${fmt(payIva)}'],        ['Total','${fmt(payroll)}']      ])" onmouseleave="hideTip()">
       <span class="cell-label">Nómina + IVA</span>
       <div class="cell-val">${fmt(payroll)}</div>
       <div class="cell-sub">Base ${fmt(payBase)} + IVA ${fmt(payIva)}</div>
     </div>
     <div class="cell" style="grid-column:span 4"
-      onmouseenter="showPopover(event,'Margen neto',[        ['Ingresos','${fmt(incIva)}'],        ['Nómina','−${fmt(payroll)}'],        ['Proveedores','−${fmt(vendors)}'],        ['Gastos','−${fmt(exps)}'],        ['Margen','${fmt(margin)}'],        ['% sobre ingresos','${mPct}%']      ])" onmouseleave="hidePopover()">
+      onmouseenter="showPopover(event,'Margen neto',[        ['Ingresos','${fmt(incIva)}'],        ['Nómina','−${fmt(payroll)}'],        ['Proveedores','−${fmt(vendors)}'],        ['Gastos','−${fmt(exps)}'],        ['Margen','${fmt(margin)}'],        ['% sobre ingresos','${mPct}%']      ])" onmouseleave="hideTip()">
       <span class="cell-label">Margen neto</span>
       <div class="cell-val ${margin>=0?'green':'red'}">${fmt(margin)}</div>
       <div class="cell-sub">${mPct}% · Gastos: ${fmt(exps)} · Prov: ${fmt(vendors)}</div>
@@ -1441,7 +1441,7 @@ function _renderDashboardOld() {
     const initials = emp.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     return `<div class="cap-member"
       onmouseenter="showPopover(event,'${emp.name}',[        ['Rol','${emp.role||'—'}'],        ['Hrs asignadas','${hrs}/${CAP}'],        ['% ocupación','${pct}%'],        ['Honorarios','${fmt(emp.salary||0)}'],        ['Overhead','${getEmpOverhead(emp)}×'],        ['Utilidad','${(getEmpUtil(emp)*100).toFixed(0)}%']      ])"
-      onmouseleave="hidePopover()"
+      onmouseleave="hideTip()"
       onclick="openEditEmployee(${emp.id},'billable')">
       <div class="cap-member-name">
         <div class="avatar" style="background:${bg};color:${color};font-size:.55rem;width:22px;height:22px">${initials}</div>
@@ -1472,7 +1472,7 @@ function getMonthLabel() {
   if (!m || !m.value) return new Date().toLocaleDateString('es-MX',{month:'long',year:'numeric'});
   return new Date(m.value+'-02').toLocaleDateString('es-MX',{month:'long',year:'numeric'});
 }
-function renderDashboard() {
+function _renderDashboardDark() {
   renderKPIs();
   renderCapacityPanel();
   renderIncomePanel();
