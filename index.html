@@ -4201,97 +4201,104 @@ function confirmImportCotizacion() {
   const svc = getSelectedServicio();
   if (!d || !svc) return;
 
-  const COLORS_DASH = ['#1a3a8f','#b0b8c8','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
-  const newProjId   = uid();
-  const color       = COLORS_DASH[projects.length % COLORS_DASH.length];
+  if (_importDest === 'pipeline') {
+    // ── TO PIPELINE ──────────────────────────────────────
+    const stage     = document.getElementById('import-pl-stage')?.value || 'propuesta';
+    const prob      = parseInt(document.getElementById('import-pl-prob')?.value) || 60;
+    const closeDate = document.getElementById('import-pl-date')?.value || null;
+    const ownerId   = parseInt(document.getElementById('import-pl-owner')?.value) || null;
 
-  // Build assignments from mapping
-  const assignments = [];
-  svc.colaboradores.forEach(c => {
-    if (c.name === 'JUNTAS**') return; // handle separately below
-    const empId = _importMapping[c.name];
-    if (!empId) return; // unmapped
+    const vendorLines = (svc.outsourcing||[]).map(o =>
+      (o.desc||'Proveedor') + ': ' + fmt(o.costo||0) + ' → cobro ' + fmt(o.precioLleno||0)
+    );
 
-    // Build breakdown from actividades
-    const breakdown = (c.actividades || []).map(a => ({
-      desc:        a.desc || '',
-      hrs:         a.hrs  || 0,
-      type:        a.tipo === 'junta' ? 'junta' : 'produccion',
-      costoAlg:    a.costoAlg    || 0,
-      precioLleno: a.precioLleno || 0,
-    }));
-
-    assignments.push({
-      empId,
-      hrs:         c.hrs || 0,
-      costoAlg:    c.costoAlg    || 0,   // reference from cotizador
-      precioLleno: c.precioLleno || 0,   // reference from cotizador
-      breakdown,
-    });
-  });
-
-  // JUNTAS**: bloque separado del proyecto, afecta a todos los asignados
-  const juntasCollab = svc.colaboradores.find(c => c.name === 'JUNTAS**');
-  const juntasBlock = juntasCollab && juntasCollab.hrs > 0 ? {
-    hrs:     juntasCollab.hrs,
-    desc:    juntasCollab.actividades?.[0]?.desc || 'Meetings / Project Overhead',
-    members: assignments.map(a => a.empId), // todos los del proyecto
-  } : { hrs: 0, desc: '', members: [] };
-
-  // Create vendors from outsourcing
-  (svc.outsourcing || []).forEach(o => {
-    vendors.push({
+    const opp = {
       id:        uid(),
-      name:      o.desc || 'Outsourcing',
-      projectId: newProjId,
-      cost:      o.costo || 0,
-      charge:    o.precioLleno || 0,
+      name:      svc.nombre || d.meta.proyecto,
+      client:    d.meta.cliente,
+      stage,  prob,  closeDate,  ownerId,
+      value:     svc.precioLleno,
+      service:   svc.nombre || d.meta.proyecto,
+      notes:     [
+        'Importado del Cotizador.',
+        'Overhead: ' + d.params.overhead + '× · Utilidad: ' + (d.params.utilidad*100).toFixed(0) + '%',
+        vendorLines.length ? 'Proveedores: ' + vendorLines.join(' | ') : '',
+      ].filter(Boolean).join(' '),
+      _fromCot: true,
+    };
+
+    pipeline.push(opp);
+    closeModal('import-cot');
+    _importData = null;
+    renderAll();
+
+    // Switch to pipeline tab
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-pipeline').classList.add('active');
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    Array.from(document.querySelectorAll('header nav button'))
+      .find(b => b.textContent.trim().toUpperCase() === 'PIPELINE')?.classList.add('active');
+    setPipelineView(_plView);
+    showToast('"' + opp.name + '" agregado al pipeline ✓');
+    if (SUPABASE_READY) sbSave('alg_pipeline', opp);
+
+  } else {
+    // ── TO PROJECTS ──────────────────────────────────────
+    const COLORS_DASH = ['#1a3a8f','#b0b8c8','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
+    const newProjId   = uid();
+    const color       = COLORS_DASH[projects.length % COLORS_DASH.length];
+
+    const assignments = [];
+    svc.colaboradores.forEach(c => {
+      if (c.name === 'JUNTAS**') return;
+      const empId = _importMapping[c.name];
+      if (!empId) return;
+      const breakdown = (c.actividades||[]).map(a => ({
+        desc: a.desc||'', hrs: a.hrs||0,
+        type: a.tipo==='junta' ? 'junta' : 'produccion',
+        costoAlg: a.costoAlg||0, precioLleno: a.precioLleno||0,
+      }));
+      assignments.push({ empId, hrs: c.hrs||0, costoAlg: c.costoAlg||0, precioLleno: c.precioLleno||0, breakdown });
     });
-  });
 
-  // Create project
-  projects.push({
-    id:          newProjId,
-    name:        svc.nombre || d.meta.proyecto,
-    client:      d.meta.cliente,
-    type:        'oneshot',
-    income:      svc.precioLleno,
-    currency:    'MXN',
-    total:       svc.precioLleno,
-    color,
-    juntas:      juntasBlock,
-    assignments,
-    _fromCotizador: true,
-    _cotizadorRef: {
-      costoAlg:    svc.costoAlg,
-      precioLleno: svc.precioLleno,
-      overhead:    d.params.overhead,
-      utilidad:    d.params.utilidad,
-    },
-  });
+    const juntasCollab = svc.colaboradores.find(c => c.name === 'JUNTAS**');
+    const juntasBlock  = juntasCollab && juntasCollab.hrs > 0
+      ? { hrs: juntasCollab.hrs, desc: juntasCollab.actividades?.[0]?.desc||'Meetings', members: assignments.map(a=>a.empId) }
+      : { hrs: 0, desc: '', members: [] };
 
-  closeModal('import-cot');
-  _importData = null;
+    (svc.outsourcing||[]).forEach(o => {
+      vendors.push({ id: uid(), name: o.desc||'Outsourcing', projectId: newProjId, cost: o.costo||0, charge: o.precioLleno||0 });
+    });
 
-  // Switch to projects tab
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-projects').classList.add('active');
-  document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('header nav button')[1].classList.add('active');
+    projects.push({
+      id: newProjId, name: svc.nombre||d.meta.proyecto, client: d.meta.cliente,
+      type: 'oneshot', income: svc.precioLleno, currency: 'MXN', total: svc.precioLleno,
+      color, juntas: juntasBlock, assignments, _fromCotizador: true,
+      _cotizadorRef: { costoAlg: svc.costoAlg, precioLleno: svc.precioLleno, overhead: d.params.overhead, utilidad: d.params.utilidad },
+    });
 
-  renderAll();
+    closeModal('import-cot');
+    _importData = null;
 
-  // Open the new project card
-  setTimeout(() => {
-    const card = document.getElementById(`proj-card-${newProjId}`);
-    if (card) {
-      card.classList.add('open');
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-projects').classList.add('active');
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    Array.from(document.querySelectorAll('header nav button'))
+      .find(b => b.textContent.trim().toUpperCase() === 'PROYECTOS')?.classList.add('active');
+
+    renderAll();
+    setTimeout(() => {
+      const card = document.getElementById('proj-card-' + newProjId);
+      if (card) { card.classList.add('open'); card.scrollIntoView({ behavior:'smooth', block:'center' }); }
+    }, 120);
+    showToast('Proyecto "' + (svc.nombre||d.meta.proyecto) + '" importado ✓');
+    if (SUPABASE_READY) {
+      sbSave('alg_projects', projects[projects.length-1]);
+      vendors.filter(v=>v.projectId===newProjId).forEach(v=>sbSave('alg_vendors',v));
     }
-  }, 120);
-
-  showToast(`Proyecto "${svc.nombre}" importado al Dashboard ✓`);
+  }
 }
+
 
 // ══════════════════════════════════════════════════════
 // REPORTE MENSUAL — PDF INTERNO
