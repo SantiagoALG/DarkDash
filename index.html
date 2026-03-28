@@ -1472,8 +1472,18 @@ async function loadFromSupabase() {
       const d = r.data && typeof r.data === 'object' ? r.data : {};
       return { ...d, id: r.id };
     };
-    employees  = (emps  ||[]).map(mapRow).filter(Boolean);
-    corporates = (corps ||[]).map(r => r ? { ...(r.data||{}), id: r.id, _combined: !!r.is_combined } : null).filter(Boolean);
+    const mappedEmps  = (emps  ||[]).map(mapRow).filter(Boolean);
+    const mappedCorps = (corps ||[]).map(r => r ? { ...(r.data||{}), id: r.id, _combined: !!r.is_combined } : null).filter(Boolean);
+
+    // Combined employees live in alg_employees with _combined:true
+    // They appear in BOTH employees AND corporates arrays
+    employees  = mappedEmps;
+    corporates = [
+      // Pure corporates from alg_corporates (not combined)
+      ...mappedCorps.filter(c => !c._combined),
+      // Combined: employees who have _combined:true — appear here too
+      ...mappedEmps.filter(e => e._combined).map(e => ({...e})),
+    ];
     projects   = (projs ||[]).map(mapRow).filter(Boolean);
     vendors    = (vends ||[]).map(mapRow).filter(Boolean);
     expenses   = (exps  ||[]).map(mapRow).filter(Boolean);
@@ -2983,12 +2993,17 @@ function saveEditEmployee() {
   showToast(`${name} actualizado ✓`);
   if (SUPABASE_READY) {
     const updEmp  = employees.find(e => e.id === _editEmpId);
-    const updCorp = corporates.find(c => c.id === _editEmpId);
-    if (updEmp)  sbSave('alg_employees',  updEmp);
+    const updCorp = corporates.find(c => c.id === _editEmpId && !c._combined); // pure corporate only
+
+    if (updEmp) {
+      // Employees (including combined) always saved to alg_employees
+      sbSave('alg_employees', updEmp);
+    }
     if (updCorp) {
+      // Pure corporate: save to alg_corporates
       sbSave('alg_corporates', updCorp);
-    } else if (!isCorporate) {
-      // Was corporate/combined before — remove from Supabase so it doesn't reappear on reload
+    } else if (type === 'billable' || type === 'combined') {
+      // Was a pure corporate before switching to billable/combined → clean up alg_corporates
       sbDelete('alg_corporates', _editEmpId);
     }
   }
