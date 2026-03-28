@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALG | Dashboard</title>
 <link href="https://api.fontshare.com/v2/css?f[]=monument-grotesk@400,500,700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   /* ── ALG DASHBOARD ── */
@@ -15,48 +15,63 @@
   --paper:     #000000;          /* fondo puro */
   --paper-2:   #0d0f14;          /* surface de cards */
   --paper-3:   #1a1d24;          /* bordes, dividers */
-  --accent:    #c8972a;          /* ALG gold */
+  --accent:    #b0b8c8;          /* ALG gold */
   --accent-2:  #e53935;          /* rojo financiero */
-  --gold:      #c8972a;
+  --gold:      #b0b8c8;
   --green:     #26a65b;          /* verde financiero */
   --green-bg:  rgba(38,166,91,.12);
   --red-bg:    rgba(229,57,53,.12);
-  --amber:     #c8972a;
-  --amber-bg:  rgba(200,151,42,.12);
-  --mono:      'DM Mono', monospace;
-  --sans:      'Monument Grotesk', sans-serif;
-  --radius:    3px;
-  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 4px 20px rgba(0,0,0,.6);
-  --shadow-lg: 0 1px 0 rgba(255,255,255,.03), 0 12px 48px rgba(0,0,0,.8);
-  --rule:      rgba(255,255,255,.08);
-  --cap:       120;
+  --amber:     #b0b8c8;
+  --amber-bg:  rgba(176,184,200,.12);
+  --mono:        'JetBrains Mono','DM Mono',monospace;
+  --sans:        'Manrope',sans-serif;
+  --display:     'Monument Grotesk',sans-serif;
+  --radius:      14px;
+  --radius-sm:   8px;
+  --glass:       rgba(255,255,255,.06);
+  --glass-border:rgba(255,255,255,.12);
+  --glass-shine: linear-gradient(135deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.02) 50%,transparent 100%);
+  --glass-blur:  blur(18px) saturate(180%);
+  --shadow:      0 1px 0 rgba(255,255,255,.08),0 8px 32px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.04) inset;
+  --shadow-lg:   0 1px 0 rgba(255,255,255,.10),0 20px 60px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.06) inset;
+  --glow-silver: 0 0 30px rgba(176,184,200,.2);
+  --rule:        rgba(255,255,255,.08);
+  --cap:         120;
+  --accent:      #b0b8c8;
+  --gold:        #b0b8c8;
+  --amber:       #b0b8c8;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 15px; }
 body {
   font-family: var(--sans);
-  background: var(--paper);
+  background: #04050a;
   color: var(--ink);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(ellipse 80% 60% at 20% 10%,rgba(176,184,210,.05) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(38,100,200,.06) 0%,transparent 60%);
 }
 
 /* ── HEADER ── */
 header {
-  background: #090b10;
-  border-bottom: 1px solid var(--rule);
-  box-shadow: 0 1px 0 rgba(200,151,42,.3);
+  background: rgba(4,5,10,.65);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 1px 0 rgba(176,184,200,.2),0 4px 24px rgba(0,0,0,.4);
   padding: 0 40px;
   display: flex; align-items: center; justify-content: space-between;
   height: 60px; position: sticky; top: 0; z-index: 100;
 }
-.logo { font-weight: 700; font-size: 1.4rem; color: #fff; letter-spacing: .02em; }
+.logo { font-family:'Monument Grotesk',sans-serif; font-weight:700; font-size:1.4rem; color:#fff; letter-spacing:.02em; }
 .logo span { color: var(--gold); }
 header nav { display: flex; gap: 6px; }
 header nav button {
   background: transparent; border: 1px solid rgba(255,255,255,.15);
-  color: rgba(255,255,255,.7); padding: 6px 16px; border-radius: 30px;
-  font-family: var(--sans); font-size: .8rem; cursor: pointer; transition: all .2s;
+  color: rgba(255,255,255,.6); padding:6px 18px; border-radius:20px;
+  font-family:var(--sans); font-size:.72rem; cursor:pointer; transition:all .2s;
+  text-transform:uppercase; letter-spacing:.07em;
+  background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.1);
 }
 header nav button.active, header nav button:hover {
   background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.4);
@@ -82,9 +97,8 @@ header nav button.active, header nav button:hover {
 /* KPI CARDS */
 .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
 .kpi-card {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-top: 1px solid var(--gold);
+  background:var(--glass); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border); border-top:1px solid rgba(176,184,200,.5);
   border-radius: var(--radius);
   padding: 20px 22px;
   box-shadow: var(--shadow);
@@ -111,11 +125,8 @@ header nav button.active, header nav button:hover {
 
 /* CARD */
 .card {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+  background:var(--glass); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; position:relative;
 }
 .card-header {
   padding: 14px 20px; border-bottom: 1px solid var(--rule);
@@ -153,10 +164,10 @@ header nav button.active, header nav button:hover {
   letter-spacing: .06em; text-transform: uppercase;
 }
 .badge.ok     { background: rgba(38,166,91,.15);  color: #26a65b; }
-.badge.warn   { background: rgba(200,151,42,.15); color: var(--gold); }
+.badge.warn   { background: rgba(176,184,200,.15); color: var(--gold); }
 .badge.over   { background: rgba(229,57,53,.15);  color: #e53935; }
 .badge.idle   { background: rgba(255,255,255,.06); color: var(--ink-soft); }
-.badge.fixed  { background: rgba(200,151,42,.15); color: var(--gold); }
+.badge.fixed  { background: rgba(176,184,200,.15); color: var(--gold); }
 .badge.oneshot{ background: rgba(255,255,255,.06); color: var(--ink-mid); }
 
 /* PROJECT TABLE */
@@ -194,14 +205,13 @@ header nav button.active, header nav button:hover {
 /* FORM MODAL */
 .modal-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.65); backdrop-filter: blur(2px);
+  background:rgba(0,0,0,.5); backdrop-filter:blur(8px) saturate(150%); -webkit-backdrop-filter:blur(8px) saturate(150%);
   z-index: 999; align-items: center; justify-content: center;
 }
 .modal-overlay.open { display: flex; }
 .modal {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-top: 2px solid var(--gold);
+  background:rgba(12,14,22,.72); backdrop-filter:blur(32px) saturate(200%); -webkit-backdrop-filter:blur(32px) saturate(200%);
+  border:1px solid rgba(255,255,255,.14); border-top:2px solid rgba(176,184,200,.55);
   border-radius: var(--radius); padding: 32px;
   width: 520px; max-width: 94vw; max-height: 90vh; overflow-y: auto;
   box-shadow: var(--shadow-lg);
@@ -261,8 +271,8 @@ header nav button.active, header nav button:hover {
   border: 1px solid var(--rule);
 }
 .btn-add.outline:hover {
-  border-color: rgba(200,151,42,.4); color: var(--gold);
-  background: rgba(200,151,42,.06);
+  border-color: rgba(176,184,200,.4); color: var(--gold);
+  background: rgba(176,184,200,.06);
 }
 
 /* ASSIGNMENT ROWS in project detail */
@@ -302,7 +312,7 @@ header nav button.active, header nav button:hover {
   animation: fadeUp .22s ease both;
   transition: border-color .2s;
 }
-.list-card:hover { border-color: rgba(200,151,42,.25); }
+.list-card:hover { border-color: rgba(176,184,200,.25); }
 @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 .list-card-header {
   display: flex; align-items: center; gap: 12px;
@@ -322,8 +332,8 @@ header nav button.active, header nav button:hover {
   font-family: var(--mono); font-size: .7rem; transition: all .2s;
 }
 .list-card.open .toggle-icon {
-  background: rgba(200,151,42,.12); color: var(--gold);
-  border-color: rgba(200,151,42,.3);
+  background: rgba(176,184,200,.12); color: var(--gold);
+  border-color: rgba(176,184,200,.3);
 }
 
 /* EMPTY STATE */
@@ -495,7 +505,7 @@ header nav button.active, header nav button:hover {
 }
 .cat-suscripcion { background:rgba(100,140,220,.12); color:#6490dc; }
 .cat-servicios   { background:rgba(140,90,180,.12);  color:#8c5ab4; }
-.cat-renta       { background:rgba(200,151,42,.12);  color:var(--gold); }
+.cat-renta       { background:rgba(176,184,200,.12);  color:var(--gold); }
 .cat-varios      { background:rgba(255,255,255,.05); color:var(--ink-soft); }
 
 /* PROJECTION PANEL */
@@ -579,10 +589,37 @@ header nav button.active, header nav button:hover {
 }
 
 /* SCROLLBAR */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width:4px; height:4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--paper-3); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(200,151,42,.3); }
+::-webkit-scrollbar-thumb:hover { background: rgba(176,184,200,.3); }
+
+
+/* ── PIPELINE ── */
+.pl-column { background:rgba(255,255,255,.04); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); overflow:hidden; min-height:200px; }
+.pl-col-header { padding:12px 14px 10px; border-bottom:1px solid rgba(255,255,255,.07); display:flex; align-items:center; gap:8px; }
+.pl-col-title { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; flex:1; }
+.pl-col-count { font-family:var(--mono); font-size:.68rem; color:var(--ink-soft); background:rgba(255,255,255,.07); padding:2px 8px; border-radius:10px; }
+.pl-col-body { padding:10px; display:flex; flex-direction:column; gap:8px; }
+.pl-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:12px 14px; cursor:pointer; transition:transform .15s,box-shadow .15s,border-color .15s; position:relative; overflow:hidden; }
+.pl-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.4); border-color:rgba(255,255,255,.2); }
+.pl-card-name { font-weight:700; font-size:.85rem; margin-bottom:2px; color:var(--ink); }
+.pl-card-client { font-size:.7rem; color:var(--ink-soft); margin-bottom:10px; font-family:var(--mono); }
+.pl-card-value { font-family:var(--mono); font-size:1rem; font-weight:600; color:var(--green); margin-bottom:6px; }
+.pl-card-meta { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.pl-tag { font-size:.6rem; font-weight:600; padding:2px 7px; border-radius:10px; background:rgba(255,255,255,.07); color:var(--ink-soft); border:1px solid rgba(255,255,255,.08); }
+.pl-card-footer { display:flex; justify-content:space-between; align-items:center; gap:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,.06); }
+.pl-prob-bar { flex:1; height:4px; background:rgba(255,255,255,.07); border-radius:2px; overflow:hidden; }
+.pl-prob-fill { height:100%; border-radius:2px; transition:width .4s; }
+.stage-prospecto   { color:#60a5fa; } .stage-propuesta { color:#f4b740; }
+.stage-negociacion { color:#fb923c; } .stage-ganado    { color:#4ade80; }
+.stage-perdido     { color:#f87171; }
+.dot-prospecto { background:#60a5fa; } .dot-propuesta { background:#f4b740; }
+.dot-negociacion { background:#fb923c; } .dot-ganado { background:#4ade80; }
+.dot-perdido { background:#f87171; }
+#pipeline-table th { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); padding:9px 14px; text-align:left; background:rgba(255,255,255,.04); border-bottom:1px solid rgba(255,255,255,.08); white-space:nowrap; }
+#pipeline-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.05); font-size:.82rem; vertical-align:middle; }
+#pipeline-table tr:hover td { background:rgba(255,255,255,.03); }
 
 /* UTIL */
 .mono { font-family: var(--mono); }
@@ -609,6 +646,7 @@ select { cursor: pointer; }
     <button onclick="showPage('employees')">Equipo</button>
     <button onclick="showPage('vendors')">Proveedores</button>
     <button onclick="showPage('expenses')">Gastos</button>
+    <button onclick="showPage('pipeline')">Pipeline</button>
   </nav>
   <div class="header-month">
     <label>Mes activo</label>
@@ -1273,9 +1311,28 @@ select { cursor: pointer; }
 
 <!-- IMPORT COTIZACION MODAL -->
 <div class="modal-overlay" id="modal-import-cot">
-  <div class="modal" style="width:600px;max-width:96vw">
-    <h3>📥 Importar cotización aprobada</h3>
-    <div id="import-meta" style="background:var(--paper);border-radius:6px;padding:12px 14px;margin-bottom:16px;font-size:.84rem"></div>
+  <div class="modal" style="width:620px;max-width:96vw">
+    <h3>📥 Importar cotización</h3>
+
+    <!-- Meta -->
+    <div id="import-meta" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:.84rem"></div>
+
+    <!-- ── DESTINATION TOGGLE ── -->
+    <div style="margin-bottom:18px">
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px">¿A dónde va esta cotización?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button id="import-dest-project" onclick="setImportDest('project')"
+          style="padding:12px 14px;border-radius:10px;border:1.5px solid rgba(38,166,91,.4);background:rgba(38,166,91,.12);cursor:pointer;font-family:var(--sans);text-align:left;transition:all .15s">
+          <div style="font-size:.85rem;font-weight:700;color:#4ade80;margin-bottom:3px">✅ Proyecto aprobado</div>
+          <div style="font-size:.7rem;color:var(--ink-soft)">Ya está vendido — crear proyecto, asignar equipo y proveedores</div>
+        </button>
+        <button id="import-dest-pipeline" onclick="setImportDest('pipeline')"
+          style="padding:12px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;font-family:var(--sans);text-align:left;transition:all .15s">
+          <div style="font-size:.85rem;font-weight:700;color:var(--ink-mid);margin-bottom:3px">🔵 Pipeline / Oportunidad</div>
+          <div style="font-size:.7rem;color:var(--ink-soft)">En proceso — guardar como oportunidad con valor y proveedores estimados</div>
+        </button>
+      </div>
+    </div>
 
     <!-- Service selector if multiple -->
     <div id="import-svc-wrap" style="margin-bottom:14px;display:none">
@@ -1285,27 +1342,131 @@ select { cursor: pointer; }
       </div>
     </div>
 
-    <!-- Mapping table -->
-    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">
-      Mapeo de colaboradores
+    <!-- Project-only: collaborator mapping -->
+    <div id="import-project-fields">
+      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">Mapeo de colaboradores</div>
+      <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:10px">Cada colaborador del cotizador se asigna al perfil del Dashboard.</div>
+      <div id="import-mapping" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto"></div>
     </div>
-    <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:10px">
-      Cada colaborador del cotizador se asigna al perfil del Dashboard. Verifica el mapeo automático.
-    </div>
-    <div id="import-mapping" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
 
-    <!-- Outsourcing preview -->
+    <!-- Pipeline-only: stage + probability + close date -->
+    <div id="import-pipeline-fields" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:4px">
+        <div class="field-group" style="margin:0">
+          <label>Etapa inicial</label>
+          <select id="import-pl-stage">
+            <option value="prospecto">🔵 Prospecto</option>
+            <option value="propuesta" selected>🟡 Propuesta enviada</option>
+            <option value="negociacion">🟠 Negociación</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>Probabilidad</label>
+          <select id="import-pl-prob">
+            <option value="90">Alta — 90%</option>
+            <option value="60" selected>Media — 60%</option>
+            <option value="30">Baja — 30%</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>Cierre estimado</label>
+          <input type="date" id="import-pl-date">
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:10px">
+        <label>Responsable</label>
+        <select id="import-pl-owner">
+          <option value="">— Sin asignar —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Outsourcing preview (both destinations) -->
     <div id="import-outsrc-wrap" style="margin-top:14px;display:none">
-      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:8px">Proveedores a crear</div>
+      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:6px" id="import-outsrc-title">Proveedores</div>
       <div id="import-outsrc-list"></div>
     </div>
 
-    <!-- Income preview -->
-    <div id="import-income-preview" style="margin-top:14px;background:var(--green-bg);border-radius:6px;padding:12px 14px;font-size:.84rem"></div>
+    <!-- Value preview (both) -->
+    <div id="import-income-preview" style="margin-top:14px;border-radius:8px;padding:12px 14px;font-size:.84rem"></div>
 
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('import-cot')">Cancelar</button>
-      <button class="btn-save" style="background:var(--green)" onclick="confirmImportCotizacion()">✅ Crear proyecto</button>
+      <button class="btn-save" id="import-confirm-btn" onclick="confirmImportCotizacion()">✅ Crear proyecto</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PIPELINE -->
+<div class="page" id="page-pipeline">
+<div class="section-wrap">
+  <div class="section-head">
+    <div><div class="section-title">Pipeline <small id="pipeline-count"></small></div></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div style="display:flex;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3px;gap:2px">
+        <button id="pl-view-kanban" onclick="setPipelineView('kanban')" style="padding:5px 14px;border-radius:16px;border:none;font-family:var(--sans);font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;background:rgba(176,184,200,.2);color:#fff">
+          &#x229E; Kanban
+        </button>
+        <button id="pl-view-list" onclick="setPipelineView('list')" style="padding:5px 14px;border-radius:16px;border:none;font-family:var(--sans);font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:var(--ink-soft)">
+          &#x2261; Lista
+        </button>
+      </div>
+      <button class="btn-add" onclick="openPipelineModal()">+ Oportunidad</button>
+    </div>
+  </div>
+  <div id="pipeline-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px"></div>
+  <div id="pipeline-kanban" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start"></div>
+  <div id="pipeline-list-wrap" style="display:none">
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse" id="pipeline-table">
+        <thead><tr id="pipeline-thead"></tr></thead>
+        <tbody id="pipeline-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="pipeline-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--ink-soft)">
+    <div style="font-size:2.5rem;margin-bottom:12px;opacity:.3">&#x1F3AF;</div>
+    <div style="font-weight:600;margin-bottom:4px">Sin oportunidades en el pipeline</div>
+    <div style="font-size:.82rem;opacity:.6">Agrega la primera para empezar a hacer seguimiento.</div>
+  </div>
+</div>
+</div>
+
+<!-- PIPELINE MODAL -->
+<div class="modal-overlay" id="modal-pipeline">
+  <div class="modal" style="width:560px">
+    <h3 id="modal-pipeline-title">Nueva oportunidad</h3>
+    <div class="field-row">
+      <div class="field-group"><label>Nombre / Proyecto</label><input type="text" id="pl-name" placeholder="Ej. Campana verano ACME"></div>
+      <div class="field-group"><label>Cliente</label><input type="text" id="pl-client" placeholder="Nombre del cliente"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group"><label>Etapa</label>
+        <select id="pl-stage">
+          <option value="prospecto">Prospecto</option>
+          <option value="propuesta">Propuesta enviada</option>
+          <option value="negociacion">Negociacion</option>
+          <option value="ganado">Ganado</option>
+          <option value="perdido">Perdido</option>
+        </select>
+      </div>
+      <div class="field-group"><label>Responsable</label><select id="pl-owner"><option value="">Sin asignar</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group"><label>Valor estimado (MXN, sin IVA)</label><input type="number" id="pl-value" placeholder="0" min="0" step="1000"></div>
+      <div class="field-group"><label>Probabilidad (%)</label><input type="number" id="pl-prob" placeholder="60" min="0" max="100" step="5" value="60"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group"><label>Fecha esperada de cierre</label><input type="date" id="pl-close-date"></div>
+      <div class="field-group"><label>Servicio(s) de interes</label><input type="text" id="pl-services" placeholder="Ej. Brand Identity, Web"></div>
+    </div>
+    <div class="field-group"><label>Notas</label>
+      <textarea id="pl-notes" rows="3" placeholder="Contexto, siguiente paso..." style="resize:vertical;min-height:72px"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('pipeline')">Cancelar</button>
+      <button class="btn-save" onclick="savePipelineOpp()">Guardar</button>
     </div>
   </div>
 </div>
@@ -1349,12 +1510,13 @@ async function sbFetch(table, method='GET', body=null, filters='') {
 async function loadFromSupabase() {
   showSyncStatus('syncing');
   try {
-    const [emps, corps, projs, vends, exps] = await Promise.all([
+    const [emps, corps, projs, vends, exps, pls] = await Promise.all([
       sbFetch('alg_employees'),
       sbFetch('alg_corporates'),
       sbFetch('alg_projects'),
       sbFetch('alg_vendors'),
       sbFetch('alg_expenses'),
+      sbFetch('alg_pipeline').catch(function(){return [];}),
     ]);
 
     // Supabase returns rows with { id, data, is_combined? }
@@ -1369,6 +1531,7 @@ async function loadFromSupabase() {
     projects   = (projs ||[]).map(mapRow).filter(Boolean);
     vendors    = (vends ||[]).map(mapRow).filter(Boolean);
     expenses   = (exps  ||[]).map(mapRow).filter(Boolean);
+    loadPipelineFromRows(pls);
 
     // Keep local idCounter well above Supabase's max to avoid collisions
     const allIds = [
@@ -1427,6 +1590,7 @@ async function sbSave(table, record) {
           alg_projects:   projects,
           alg_vendors:    vendors,
           alg_expenses:   expenses,
+          alg_pipeline:   pipeline,
         };
         const arr = arrMap[table];
         if (arr) {
@@ -1479,7 +1643,7 @@ function showSyncStatus(state, msg='') {
 const SUPABASE_READY = SUPABASE_URL !== 'TU_SUPABASE_URL';
 
 // ── COLORS ─────────────────────────────
-const COLORS = ['#1a3a8f','#c8972a','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
+const COLORS = ['#1a3a8f','#b0b8c8','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
 let colorIdx = 0;
 
 // ── STATE ──────────────────────────────
@@ -1496,7 +1660,7 @@ let _pqAssignRows   = [];
 
 // Avatar color palette — distinct, readable on dark bg
 const AVATAR_COLORS = [
-  { bg:'rgba(200,151,42,.15)', color:'#c8972a' },
+  { bg:'rgba(176,184,200,.15)', color:'#b0b8c8' },
   { bg:'rgba(38,166,91,.15)',  color:'#26a65b' },
   { bg:'rgba(229,57,53,.15)',  color:'#e53935' },
   { bg:'rgba(100,140,220,.15)',color:'#6490dc' },
@@ -3534,13 +3698,276 @@ function importPendingQuote(event) {
   reader.readAsText(file);
 }
 
+
+// ══════════════════════════════════════════════════════
+// PIPELINE / CRM
+// ══════════════════════════════════════════════════════
+var pipeline     = [];
+var _plView      = 'kanban';
+var _editingPlId = null;
+
+var PL_STAGES = [
+  { key:'prospecto',   label:'Prospecto',        emoji:'Prospecto'  },
+  { key:'propuesta',   label:'Propuesta enviada', emoji:'Propuesta'  },
+  { key:'negociacion', label:'Negociacion',        emoji:'Negociacion'},
+  { key:'ganado',      label:'Ganado',             emoji:'Ganado'     },
+  { key:'perdido',     label:'Perdido',            emoji:'Perdido'    },
+];
+
+function plStage(key) {
+  for (var i=0;i<PL_STAGES.length;i++) { if (PL_STAGES[i].key===key) return PL_STAGES[i]; }
+  return PL_STAGES[0];
+}
+
+function plWeightedValue(opp) { return (opp.value||0)*((opp.prob||0)/100); }
+
+function renderPipeline() {
+  var countEl = document.getElementById('pipeline-count');
+  if (countEl) countEl.textContent = pipeline.length ? '('+pipeline.length+')' : '';
+  renderPipelineKPIs();
+  if (_plView === 'kanban') renderPipelineKanban();
+  else renderPipelineList();
+  var empty = document.getElementById('pipeline-empty');
+  if (empty) empty.style.display = pipeline.length ? 'none' : 'block';
+}
+
+function renderPipelineKPIs() {
+  var el = document.getElementById('pipeline-kpis');
+  if (!el) return;
+  var active  = pipeline.filter(function(o){ return o.stage!=='perdido' && o.stage!=='ganado'; });
+  var ganados = pipeline.filter(function(o){ return o.stage==='ganado'; });
+  var totalVal  = active.reduce(function(s,o){ return s+(o.value||0); }, 0);
+  var weightVal = active.reduce(function(s,o){ return s+plWeightedValue(o); }, 0);
+  var ganVal    = ganados.reduce(function(s,o){ return s+(o.value||0); }, 0);
+
+  var kpis = [
+    { label:'Oportunidades activas', val: active.length+' opps',  sub: pipeline.length+' total', color:'var(--ink)' },
+    { label:'Valor total pipeline',  val: fmt(totalVal),           sub: 'Sin IVA, opps activas',  color:'var(--ink)' },
+    { label:'Valor ponderado',       val: fmt(weightVal),          sub: 'Ajustado x probabilidad',color:'#b0b8c8'    },
+    { label:'Cerrado ganado',        val: fmt(ganVal),             sub: ganados.length+' proyectos', color:'var(--green)'},
+  ];
+  el.innerHTML = kpis.map(function(k) {
+    return '<div class="kpi-card"><div class="kpi-label">'+k.label+'</div>'
+      +'<div class="kpi-val" style="color:'+k.color+'">'+k.val+'</div>'
+      +'<div class="kpi-sub">'+k.sub+'</div></div>';
+  }).join('');
+}
+
+function renderPipelineKanban() {
+  var board = document.getElementById('pipeline-kanban');
+  var listW = document.getElementById('pipeline-list-wrap');
+  if (!board) return;
+  board.style.display = 'grid';
+  if (listW) listW.style.display = 'none';
+
+  board.innerHTML = PL_STAGES.map(function(stage) {
+    var opps     = pipeline.filter(function(o){ return o.stage===stage.key; });
+    var stageVal = opps.reduce(function(s,o){ return s+(o.value||0); }, 0);
+    var cards    = opps.map(function(o){ return buildPlCard(o); }).join('');
+    var stageKey = stage.key;
+
+    return '<div class="pl-column">'
+      +'<div class="pl-col-header">'
+      +'<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0" class="dot-'+stage.key+'"></div>'
+      +'<div class="pl-col-title stage-'+stage.key+'">'+stage.label+'</div>'
+      +'<span class="pl-col-count">'+opps.length+'</span>'
+      +'</div>'
+      +(stageVal>0 ? '<div style="padding:4px 14px 8px;font-family:var(--mono);font-size:.68rem;color:var(--ink-soft);border-bottom:1px solid rgba(255,255,255,.05)">'+fmt(stageVal)+'</div>' : '')
+      +'<div class="pl-col-body">'+cards
+      +'<button data-stage="'+stageKey+'" onclick="openPipelineModal(null,this.dataset.stage)" '
+      +'style="width:100%;padding:7px;background:transparent;border:1px dashed rgba(255,255,255,.1);border-radius:8px;'
+      +'color:var(--ink-soft);font-family:var(--sans);font-size:.72rem;cursor:pointer">+ Agregar</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function buildPlCard(o) {
+  var probClr = o.prob>=70 ? 'var(--green)' : o.prob>=40 ? '#f4b740' : 'var(--accent-2)';
+  var owner   = '';
+  if (o.ownerId) {
+    var emp = employees.find(function(e){ return e.id===o.ownerId; });
+    if (emp) owner = emp.name;
+  }
+  var daysOut  = null;
+  var dateTag  = '';
+  if (o.closeDate) {
+    daysOut = Math.ceil((new Date(o.closeDate)-new Date())/(1000*60*60*24));
+    var dtStyle = daysOut<0 ? 'color:var(--accent-2)' : daysOut<7 ? 'color:#f4b740' : '';
+    var dtLabel = daysOut<0 ? (Math.abs(daysOut)+'d vencido') : daysOut===0 ? 'Hoy' : daysOut+'d';
+    dateTag = '<span class="pl-tag" style="'+dtStyle+'">'+dtLabel+'</span>';
+  }
+  var wonBtn = '';
+  if (o.stage==='ganado' && !o.projectId) {
+    wonBtn = '<button onclick="event.stopPropagation();createProjectFromOpp('+o.id+')" '
+      +'style="font-size:.65rem;padding:3px 10px;background:rgba(74,222,128,.12);color:#4ade80;'
+      +'border:1px solid rgba(74,222,128,.25);border-radius:8px;cursor:pointer;font-family:var(--sans);font-weight:700">+ Crear proyecto</button>';
+  } else if (o.projectId) {
+    wonBtn = '<span style="font-size:.65rem;color:#4ade80;font-family:var(--mono)">check Proyecto creado</span>';
+  }
+
+  return '<div class="pl-card" onclick="openPipelineModal('+o.id+')">'
+    +'<div class="pl-card-name">'+o.name+'</div>'
+    +'<div class="pl-card-client">'+(o.client||'Sin cliente')+'</div>'
+    +'<div class="pl-card-value">'+fmt(o.value||0)+'</div>'
+    +'<div class="pl-card-meta">'
+    +(o.services ? '<span class="pl-tag">'+o.services+'</span>' : '')
+    +(owner ? '<span class="pl-tag">'+owner+'</span>' : '')
+    +dateTag
+    +'</div>'
+    +'<div class="pl-card-footer">'
+    +'<div class="pl-prob-bar"><div class="pl-prob-fill" style="width:'+(o.prob||0)+'%;background:'+probClr+'"></div></div>'
+    +'<span style="font-family:var(--mono);font-size:.65rem;color:'+probClr+';flex-shrink:0">'+(o.prob||0)+'%</span>'
+    +wonBtn
+    +'</div>'
+    +(o.notes ? '<div style="font-size:.68rem;color:var(--ink-soft);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">'+(o.notes.length>80?o.notes.slice(0,80)+'...':o.notes)+'</div>' : '')
+    +'</div>';
+}
+
+function renderPipelineList() {
+  var board  = document.getElementById('pipeline-kanban');
+  var listW  = document.getElementById('pipeline-list-wrap');
+  var tbody  = document.getElementById('pipeline-tbody');
+  var thead  = document.getElementById('pipeline-thead');
+  if (!listW||!tbody) return;
+  if (board) board.style.display = 'none';
+  listW.style.display = 'block';
+
+  if (thead) thead.innerHTML = ['Oportunidad','Cliente','Etapa','Responsable','Valor est.','Ponderado','Prob.','Cierre','Servicios','']
+    .map(function(h,i){ return '<th'+(i>=4&&i<=6?' style="text-align:right"':'')+'>' +h+'</th>'; }).join('');
+
+  if (!pipeline.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--ink-soft)">Sin oportunidades.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = pipeline.map(function(o) {
+    var stage  = plStage(o.stage);
+    var owner  = '';
+    if (o.ownerId) { var ep=employees.find(function(e){return e.id===o.ownerId;}); if(ep) owner=ep.name; }
+    var probClr= o.prob>=70?'var(--green)':o.prob>=40?'#f4b740':'var(--accent-2)';
+    var wVal   = plWeightedValue(o);
+    var closeF = o.closeDate ? new Date(o.closeDate).toLocaleDateString('es-MX',{day:'numeric',month:'short'}) : '—';
+    var wonBtn = '';
+    if (o.stage==='ganado'&&!o.projectId) {
+      wonBtn = '<button onclick="createProjectFromOpp('+o.id+')" style="font-size:.62rem;padding:2px 9px;background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);border-radius:8px;cursor:pointer;font-family:var(--sans);font-weight:700;margin-right:4px">+ Proyecto</button>';
+    } else if (o.projectId) { wonBtn = '<span style="color:#4ade80;font-size:.7rem">check</span> '; }
+
+    return '<tr>'
+      +'<td><strong>'+o.name+'</strong></td>'
+      +'<td style="color:var(--ink-soft)">'+(o.client||'—')+'</td>'
+      +'<td><span class="stage-'+o.stage+'" style="font-size:.72rem;font-weight:700">'+stage.label+'</span></td>'
+      +'<td style="color:var(--ink-soft);font-size:.78rem">'+(owner||'—')+'</td>'
+      +'<td style="text-align:right;font-family:var(--mono)">'+fmt(o.value||0)+'</td>'
+      +'<td style="text-align:right;font-family:var(--mono);color:#b0b8c8">'+fmt(wVal)+'</td>'
+      +'<td style="text-align:right;font-family:var(--mono);color:'+probClr+';font-weight:600">'+(o.prob||0)+'%</td>'
+      +'<td style="font-size:.75rem;color:var(--ink-soft)">'+closeF+'</td>'
+      +'<td style="font-size:.72rem;color:var(--ink-soft)">'+(o.services||'—')+'</td>'
+      +'<td style="text-align:right">'+wonBtn
+      +'<button onclick="openPipelineModal('+o.id+')" style="font-size:.65rem;padding:2px 8px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;color:var(--ink-soft);font-family:var(--sans)">Edit</button> '
+      +'<button onclick="deletePipelineOpp('+o.id+')" style="font-size:.65rem;padding:2px 8px;background:transparent;border:1px solid rgba(229,57,53,.2);border-radius:6px;cursor:pointer;color:var(--accent-2);font-family:var(--sans)">X</button>'
+      +'</td></tr>';
+  }).join('');
+}
+
+function setPipelineView(view) {
+  _plView = view;
+  var kBtn = document.getElementById('pl-view-kanban');
+  var lBtn = document.getElementById('pl-view-list');
+  if (kBtn) { kBtn.style.background=view==='kanban'?'rgba(176,184,200,.2)':'transparent'; kBtn.style.color=view==='kanban'?'#fff':'var(--ink-soft)'; }
+  if (lBtn) { lBtn.style.background=view==='list'?'rgba(176,184,200,.2)':'transparent';   lBtn.style.color=view==='list'?'#fff':'var(--ink-soft)'; }
+  renderPipeline();
+}
+
+function openPipelineModal(id, defaultStage) {
+  _editingPlId = id || null;
+  var opp = id ? pipeline.find(function(o){return o.id===id;}) : null;
+  document.getElementById('modal-pipeline-title').textContent = opp ? 'Editar oportunidad' : 'Nueva oportunidad';
+  document.getElementById('pl-name').value       = opp ? (opp.name||'')       : '';
+  document.getElementById('pl-client').value     = opp ? (opp.client||'')     : '';
+  document.getElementById('pl-stage').value      = opp ? (opp.stage||'prospecto') : (defaultStage||'prospecto');
+  document.getElementById('pl-value').value      = opp ? (opp.value||'')      : '';
+  document.getElementById('pl-prob').value       = opp ? (opp.prob!=null?opp.prob:60) : 60;
+  document.getElementById('pl-close-date').value = opp ? (opp.closeDate||'')  : '';
+  document.getElementById('pl-services').value   = opp ? (opp.services||'')   : '';
+  document.getElementById('pl-notes').value      = opp ? (opp.notes||'')      : '';
+
+  var sel = document.getElementById('pl-owner');
+  sel.innerHTML = '<option value="">Sin asignar</option>'
+    + employees.map(function(e){ return '<option value="'+e.id+'"'+(opp&&opp.ownerId===e.id?' selected':'')+'>'+e.name+'</option>'; }).join('');
+
+  document.getElementById('modal-pipeline').classList.add('open');
+}
+
+function savePipelineOpp() {
+  var name = document.getElementById('pl-name').value.trim();
+  if (!name) { showToast('Escribe el nombre de la oportunidad'); return; }
+  var existing = _editingPlId ? pipeline.find(function(o){return o.id===_editingPlId;}) : null;
+  var opp = {
+    id:        _editingPlId || uid(),
+    name:      name,
+    client:    document.getElementById('pl-client').value.trim(),
+    stage:     document.getElementById('pl-stage').value,
+    ownerId:   parseInt(document.getElementById('pl-owner').value) || null,
+    value:     parseFloat(document.getElementById('pl-value').value) || 0,
+    prob:      parseFloat(document.getElementById('pl-prob').value) || 0,
+    closeDate: document.getElementById('pl-close-date').value || null,
+    services:  document.getElementById('pl-services').value.trim(),
+    notes:     document.getElementById('pl-notes').value.trim(),
+    projectId: existing ? (existing.projectId||null) : null,
+    createdAt: existing ? (existing.createdAt||new Date().toISOString()) : new Date().toISOString(),
+  };
+  if (_editingPlId) {
+    var idx = pipeline.findIndex(function(o){return o.id===_editingPlId;});
+    if (idx>=0) pipeline[idx] = opp;
+  } else { pipeline.push(opp); }
+  closeModal('pipeline');
+  renderPipeline();
+  showToast('"'+name+'" guardado en pipeline');
+  if (SUPABASE_READY) sbSave('alg_pipeline', opp);
+}
+
+function deletePipelineOpp(id) {
+  var o = pipeline.find(function(x){return x.id===id;});
+  if (!o || !confirm('Eliminar "'+o.name+'"?')) return;
+  pipeline = pipeline.filter(function(x){return x.id!==id;});
+  renderPipeline();
+  if (SUPABASE_READY) sbDelete('alg_pipeline', id);
+}
+
+function createProjectFromOpp(id) {
+  var o = pipeline.find(function(x){return x.id===id;});
+  if (!o) return;
+  var CLRS = ['#1a3a8f','#b0b8c8','#e53935','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
+  var newProjId = uid();
+  projects.push({
+    id:newProjId, name:o.name, client:o.client||'', type:'oneshot',
+    income:o.value||0, currency:'MXN', total:o.value||0,
+    color:CLRS[projects.length%CLRS.length],
+    juntas:{hrs:0,desc:'',members:[]}, assignments:[],
+  });
+  o.projectId = newProjId;
+  renderAll(); renderPipeline();
+  showToast('"'+o.name+'" creado como proyecto');
+  if (SUPABASE_READY) { sbSave('alg_projects',projects[projects.length-1]); sbSave('alg_pipeline',o); }
+}
+
+function loadPipelineFromRows(rows) {
+  pipeline = (rows||[]).map(function(r) {
+    if (!r) return null;
+    var d = r.data && typeof r.data==='object' ? r.data : {};
+    return Object.assign({},d,{id:r.id});
+  }).filter(Boolean);
+}
+
+
 // ── PAGES ──────────────────────────────
 function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${id}`).classList.add('active');
-  document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('header nav button').forEach(function(b){b.classList.remove('active');});
   event.target.classList.add('active');
-  renderAll();
+  if (id==='pipeline') renderPipeline();
+  else renderAll();
 }
 
 // ── TOAST ──────────────────────────────
@@ -3549,6 +3976,7 @@ function showPage(id) {
 // ══════════════════════════════════════════════════════
 let _importData    = null;  // parsed JSON
 let _importMapping = {};    // { cotizadorName: dashboardEmpId | null }
+let _importDest    = 'project'; // 'project' | 'pipeline'
 
 // Fuzzy name match: find best employee by name similarity
 function fuzzyMatch(cotName, empList) {
@@ -3594,9 +4022,49 @@ function importCotizacion(event) {
   reader.readAsText(file);
 }
 
+function setImportDest(dest) {
+  _importDest = dest;
+  const projBtn = document.getElementById('import-dest-project');
+  const plBtn   = document.getElementById('import-dest-pipeline');
+  const projFld = document.getElementById('import-project-fields');
+  const plFld   = document.getElementById('import-pipeline-fields');
+  const confBtn = document.getElementById('import-confirm-btn');
+  const outsrcTitle = document.getElementById('import-outsrc-title');
+
+  if (dest === 'project') {
+    projBtn.style.borderColor  = 'rgba(38,166,91,.5)';
+    projBtn.style.background   = 'rgba(38,166,91,.15)';
+    plBtn.style.borderColor    = 'rgba(255,255,255,.1)';
+    plBtn.style.background     = 'rgba(255,255,255,.04)';
+    if (projFld) projFld.style.display = 'block';
+    if (plFld)   plFld.style.display   = 'none';
+    if (confBtn) { confBtn.textContent = '✅ Crear proyecto'; confBtn.style.background = 'var(--green)'; }
+    if (outsrcTitle) outsrcTitle.textContent = 'Proveedores a crear';
+  } else {
+    plBtn.style.borderColor    = 'rgba(100,144,220,.5)';
+    plBtn.style.background     = 'rgba(100,144,220,.12)';
+    projBtn.style.borderColor  = 'rgba(255,255,255,.1)';
+    projBtn.style.background   = 'rgba(255,255,255,.04)';
+    if (projFld) projFld.style.display = 'none';
+    if (plFld)   plFld.style.display   = 'block';
+    // Populate owner dropdown
+    const ownerSel = document.getElementById('import-pl-owner');
+    if (ownerSel) {
+      ownerSel.innerHTML = '<option value="">— Sin asignar —</option>'
+        + employees.map(e => '<option value="' + e.id + '">' + e.name + '</option>').join('');
+    }
+    if (confBtn) { confBtn.textContent = '🔵 Agregar al pipeline'; confBtn.style.background = '#6490dc'; }
+    if (outsrcTitle) outsrcTitle.textContent = 'Proveedores estimados (incluidos en la oportunidad)';
+  }
+}
+
 function openImportModal() {
   const d = _importData;
   if (!d) return;
+
+  // Reset to project dest by default
+  _importDest = 'project';
+  setImportDest('project');
 
   // Meta block
   document.getElementById('import-meta').innerHTML = `
@@ -3733,97 +4201,104 @@ function confirmImportCotizacion() {
   const svc = getSelectedServicio();
   if (!d || !svc) return;
 
-  const COLORS_DASH = ['#1a3a8f','#c8972a','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
-  const newProjId   = uid();
-  const color       = COLORS_DASH[projects.length % COLORS_DASH.length];
+  if (_importDest === 'pipeline') {
+    // ── TO PIPELINE ──────────────────────────────────────
+    const stage     = document.getElementById('import-pl-stage')?.value || 'propuesta';
+    const prob      = parseInt(document.getElementById('import-pl-prob')?.value) || 60;
+    const closeDate = document.getElementById('import-pl-date')?.value || null;
+    const ownerId   = parseInt(document.getElementById('import-pl-owner')?.value) || null;
 
-  // Build assignments from mapping
-  const assignments = [];
-  svc.colaboradores.forEach(c => {
-    if (c.name === 'JUNTAS**') return; // handle separately below
-    const empId = _importMapping[c.name];
-    if (!empId) return; // unmapped
+    const vendorLines = (svc.outsourcing||[]).map(o =>
+      (o.desc||'Proveedor') + ': ' + fmt(o.costo||0) + ' → cobro ' + fmt(o.precioLleno||0)
+    );
 
-    // Build breakdown from actividades
-    const breakdown = (c.actividades || []).map(a => ({
-      desc:        a.desc || '',
-      hrs:         a.hrs  || 0,
-      type:        a.tipo === 'junta' ? 'junta' : 'produccion',
-      costoAlg:    a.costoAlg    || 0,
-      precioLleno: a.precioLleno || 0,
-    }));
-
-    assignments.push({
-      empId,
-      hrs:         c.hrs || 0,
-      costoAlg:    c.costoAlg    || 0,   // reference from cotizador
-      precioLleno: c.precioLleno || 0,   // reference from cotizador
-      breakdown,
-    });
-  });
-
-  // JUNTAS**: bloque separado del proyecto, afecta a todos los asignados
-  const juntasCollab = svc.colaboradores.find(c => c.name === 'JUNTAS**');
-  const juntasBlock = juntasCollab && juntasCollab.hrs > 0 ? {
-    hrs:     juntasCollab.hrs,
-    desc:    juntasCollab.actividades?.[0]?.desc || 'Meetings / Project Overhead',
-    members: assignments.map(a => a.empId), // todos los del proyecto
-  } : { hrs: 0, desc: '', members: [] };
-
-  // Create vendors from outsourcing
-  (svc.outsourcing || []).forEach(o => {
-    vendors.push({
+    const opp = {
       id:        uid(),
-      name:      o.desc || 'Outsourcing',
-      projectId: newProjId,
-      cost:      o.costo || 0,
-      charge:    o.precioLleno || 0,
+      name:      svc.nombre || d.meta.proyecto,
+      client:    d.meta.cliente,
+      stage,  prob,  closeDate,  ownerId,
+      value:     svc.precioLleno,
+      service:   svc.nombre || d.meta.proyecto,
+      notes:     [
+        'Importado del Cotizador.',
+        'Overhead: ' + d.params.overhead + '× · Utilidad: ' + (d.params.utilidad*100).toFixed(0) + '%',
+        vendorLines.length ? 'Proveedores: ' + vendorLines.join(' | ') : '',
+      ].filter(Boolean).join(' '),
+      _fromCot: true,
+    };
+
+    pipeline.push(opp);
+    closeModal('import-cot');
+    _importData = null;
+    renderAll();
+
+    // Switch to pipeline tab
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-pipeline').classList.add('active');
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    Array.from(document.querySelectorAll('header nav button'))
+      .find(b => b.textContent.trim().toUpperCase() === 'PIPELINE')?.classList.add('active');
+    setPipelineView(_plView);
+    showToast('"' + opp.name + '" agregado al pipeline ✓');
+    if (SUPABASE_READY) sbSave('alg_pipeline', opp);
+
+  } else {
+    // ── TO PROJECTS ──────────────────────────────────────
+    const COLORS_DASH = ['#1a3a8f','#b0b8c8','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
+    const newProjId   = uid();
+    const color       = COLORS_DASH[projects.length % COLORS_DASH.length];
+
+    const assignments = [];
+    svc.colaboradores.forEach(c => {
+      if (c.name === 'JUNTAS**') return;
+      const empId = _importMapping[c.name];
+      if (!empId) return;
+      const breakdown = (c.actividades||[]).map(a => ({
+        desc: a.desc||'', hrs: a.hrs||0,
+        type: a.tipo==='junta' ? 'junta' : 'produccion',
+        costoAlg: a.costoAlg||0, precioLleno: a.precioLleno||0,
+      }));
+      assignments.push({ empId, hrs: c.hrs||0, costoAlg: c.costoAlg||0, precioLleno: c.precioLleno||0, breakdown });
     });
-  });
 
-  // Create project
-  projects.push({
-    id:          newProjId,
-    name:        svc.nombre || d.meta.proyecto,
-    client:      d.meta.cliente,
-    type:        'oneshot',
-    income:      svc.precioLleno,
-    currency:    'MXN',
-    total:       svc.precioLleno,
-    color,
-    juntas:      juntasBlock,
-    assignments,
-    _fromCotizador: true,
-    _cotizadorRef: {
-      costoAlg:    svc.costoAlg,
-      precioLleno: svc.precioLleno,
-      overhead:    d.params.overhead,
-      utilidad:    d.params.utilidad,
-    },
-  });
+    const juntasCollab = svc.colaboradores.find(c => c.name === 'JUNTAS**');
+    const juntasBlock  = juntasCollab && juntasCollab.hrs > 0
+      ? { hrs: juntasCollab.hrs, desc: juntasCollab.actividades?.[0]?.desc||'Meetings', members: assignments.map(a=>a.empId) }
+      : { hrs: 0, desc: '', members: [] };
 
-  closeModal('import-cot');
-  _importData = null;
+    (svc.outsourcing||[]).forEach(o => {
+      vendors.push({ id: uid(), name: o.desc||'Outsourcing', projectId: newProjId, cost: o.costo||0, charge: o.precioLleno||0 });
+    });
 
-  // Switch to projects tab
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-projects').classList.add('active');
-  document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('header nav button')[1].classList.add('active');
+    projects.push({
+      id: newProjId, name: svc.nombre||d.meta.proyecto, client: d.meta.cliente,
+      type: 'oneshot', income: svc.precioLleno, currency: 'MXN', total: svc.precioLleno,
+      color, juntas: juntasBlock, assignments, _fromCotizador: true,
+      _cotizadorRef: { costoAlg: svc.costoAlg, precioLleno: svc.precioLleno, overhead: d.params.overhead, utilidad: d.params.utilidad },
+    });
 
-  renderAll();
+    closeModal('import-cot');
+    _importData = null;
 
-  // Open the new project card
-  setTimeout(() => {
-    const card = document.getElementById(`proj-card-${newProjId}`);
-    if (card) {
-      card.classList.add('open');
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-projects').classList.add('active');
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    Array.from(document.querySelectorAll('header nav button'))
+      .find(b => b.textContent.trim().toUpperCase() === 'PROYECTOS')?.classList.add('active');
+
+    renderAll();
+    setTimeout(() => {
+      const card = document.getElementById('proj-card-' + newProjId);
+      if (card) { card.classList.add('open'); card.scrollIntoView({ behavior:'smooth', block:'center' }); }
+    }, 120);
+    showToast('Proyecto "' + (svc.nombre||d.meta.proyecto) + '" importado ✓');
+    if (SUPABASE_READY) {
+      sbSave('alg_projects', projects[projects.length-1]);
+      vendors.filter(v=>v.projectId===newProjId).forEach(v=>sbSave('alg_vendors',v));
     }
-  }, 120);
-
-  showToast(`Proyecto "${svc.nombre}" importado al Dashboard ✓`);
+  }
 }
+
 
 // ══════════════════════════════════════════════════════
 // REPORTE MENSUAL — PDF INTERNO
@@ -3861,7 +4336,7 @@ function exportMonthlyReport() {
     '.kpi-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a7f94;margin-bottom:5px;}',
     '.kpi-val{font-family:"DM Mono",monospace;font-size:18px;font-weight:500;line-height:1;}',
     '.kpi-sub{font-size:8.5px;color:#7a7f94;margin-top:4px;}',
-    '.green{color:#1a6b3c;}.red{color:#e8312a;}.gold{color:#c8972a;}',
+    '.green{color:#1a6b3c;}.red{color:#e8312a;}.gold{color:#b0b8c8;}',
     'table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:10.5px;}',
     'thead tr{background:#0f1117;color:#fff;}',
     'th{padding:6px 10px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;}',
@@ -3877,7 +4352,7 @@ function exportMonthlyReport() {
     '.pill{display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.03em;}',
     '.pill-green{background:#e8f4ed;color:#1a6b3c;}',
     '.pill-blue{background:#e8f0fe;color:#1a3a8f;}',
-    '.pill-gold{background:rgba(200,151,42,.15);color:#c8972a;}',
+    '.pill-gold{background:rgba(176,184,200,.15);color:#b0b8c8;}',
     '.pill-amber{background:#fff8f0;color:#b45309;}',
     '.pill-gray{background:#efeee9;color:#7a7f94;}',
     '.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);}',
@@ -4038,7 +4513,7 @@ function exportMonthlyReport() {
   employees.forEach(function(emp) {
     const hrs3   = getEmployeeAssignedHrs(emp.id);
     const pctMax = hrs3 / CAP_MAX;
-    const color3 = hrs3 > CAP_MAX ? '#e8312a' : hrs3 > CAP ? '#c8972a' : '#1a3a8f';
+    const color3 = hrs3 > CAP_MAX ? '#e8312a' : hrs3 > CAP ? '#b0b8c8' : '#1a3a8f';
     capRows += '<div class="cap-row">'
       + '<div><span style="font-size:10px;font-weight:600">' + emp.name + '</span>' + (emp.role ? '<span style="font-size:8.5px;color:#7a7f94;margin-left:5px">' + emp.role + '</span>' : '') + '</div>'
       + '<div style="position:relative"><div class="bar-wrap"><div class="bar-fill" style="width:' + Math.min(pctMax,1)*100 + '%;background:' + color3 + '"></div></div></div>'
@@ -4049,7 +4524,7 @@ function exportMonthlyReport() {
   const capHTML = '<div class="section-box" style="padding:14px 16px">'
     + '<div style="display:flex;gap:16px;margin-bottom:10px">'
     + '<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#1a3a8f"></div><span style="font-size:8.5px;color:#7a7f94">≤120 hrs</span></div>'
-    + '<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#c8972a"></div><span style="font-size:8.5px;color:#7a7f94">121–140 hrs</span></div>'
+    + '<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#b0b8c8"></div><span style="font-size:8.5px;color:#7a7f94">121–140 hrs</span></div>'
     + '<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#e8312a"></div><span style="font-size:8.5px;color:#7a7f94">>140 hrs</span></div>'
     + '</div>'
     + (capRows || '<p style="font-size:10px;color:#7a7f94">Sin colaboradores.</p>')
@@ -4061,7 +4536,7 @@ function exportMonthlyReport() {
     '<title>Reporte ALG ' + monthLabel + '</title>',
     '<style>' + CSS + '</style></head><body>',
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #0f1117">',
-    '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#c8972a;margin-bottom:4px">ALG Agency</div>',
+    '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#b0b8c8;margin-bottom:4px">ALG Agency</div>',
     '<h1>Reporte Mensual</h1><div style="font-size:12px;color:#7a7f94;margin-top:4px;text-transform:capitalize">' + monthLabel + '</div></div>',
     '<div style="text-align:right;font-size:9px;color:#7a7f94">',
     '<div>Documento interno — uso exclusivo dirección</div>',
