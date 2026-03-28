@@ -1270,32 +1270,29 @@ select { cursor: pointer; }
       </div>
     </div>
 
-    <div style="background:var(--paper-2);border-radius:6px;padding:12px 14px;margin-top:8px">
-      <div style="font-size:.72rem;color:var(--ink-soft);margin-bottom:6px;font-weight:600">PREVIEW DE COSTO Y PRECIO</div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem">
-        <span>Honorarios base:</span><span id="ee-base-preview" style="font-family:var(--mono)">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-soft)">
-        <span>Overhead (<span id="ee-overhead-label">1.5×</span>):</span>
-        <span id="ee-overhead-preview" style="font-family:var(--mono)">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--amber)">
-        <span>IVA 16%:</span><span id="ee-iva-preview" style="font-family:var(--mono)">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--paper-3)">
-        <span>Costo real ALG (base + OH + IVA):</span>
-        <span id="ee-total-preview" style="font-family:var(--mono);color:var(--accent-2)">$0</span>
-      </div>
-      <div style="height:1px;background:var(--paper-3);margin:6px 0"></div>
-      <div style="display:flex;justify-content:space-between;font-size:.82rem">
-        <span>Precio sin IVA (<span id="ee-util-label">50%</span> util):</span>
-        <span id="ee-precio-preview" style="font-family:var(--mono);color:var(--green)">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.88rem;font-weight:700;margin-top:3px">
-        <span>Precio de venta al cliente (+ IVA):</span>
-        <span id="ee-precio-iva-preview" style="font-family:var(--mono);color:var(--green)">$0</span>
+    <!-- Avatar color picker -->
+    <div style="display:flex;align-items:center;gap:14px;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;margin-top:8px">
+      <div id="ee-avatar-preview" style="flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px">Color del avatar</div>
+        <input type="color" id="ee-avatar-color" value="#b0b8c8"
+          oninput="updateEeAvatarPreview()"
+          style="width:48px;height:28px;border:none;background:transparent;cursor:pointer;border-radius:4px;padding:0">
       </div>
     </div>
+    <!-- Dynamic preview (chart for non-implants, cost for implants) -->
+    <div id="ee-preview-section" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 14px;margin-top:8px;min-height:60px">
+      <!-- populated by updateEePreview() -->
+    </div>
+    <!-- Hidden legacy IDs kept for JS compatibility -->
+    <span id="ee-base-preview"      style="display:none"></span>
+    <span id="ee-overhead-preview"  style="display:none"></span>
+    <span id="ee-iva-preview"       style="display:none"></span>
+    <span id="ee-total-preview"     style="display:none"></span>
+    <span id="ee-precio-preview"    style="display:none"></span>
+    <span id="ee-precio-iva-preview"style="display:none"></span>
+    <span id="ee-overhead-label"    style="display:none">1.5×</span>
+    <span id="ee-util-label"        style="display:none">50%</span>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('edit-employee')">Cancelar</button>
       <button class="btn-save" onclick="saveEditEmployee()">Guardar cambios</button>
@@ -1609,10 +1606,19 @@ function getAvatarStyle(name='') {
   return AVATAR_COLORS[idx];
 }
 
-function makeAvatar(name='', size='') {
+function makeAvatar(name='', size='', customColor=null) {
   const initials = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  const { bg, color } = getAvatarStyle(name);
-  return `<div class="avatar ${size}" style="background:${bg};color:${color};border-color:${color}30">${initials}</div>`;
+  let bg, color;
+  if (customColor) {
+    // derive a lighter tint from the custom hex for background
+    bg    = customColor + '28';  // ~16% opacity
+    color = customColor;
+  } else {
+    const style = getAvatarStyle(name);
+    bg    = style.bg;
+    color = style.color;
+  }
+  return '<div class="avatar ' + size + '" style="background:' + bg + ';color:' + color + ';border-color:' + color + '30">' + initials + '</div>';
 }
 
 // Local temp IDs start at 1,000,000 so they never collide with
@@ -2313,13 +2319,9 @@ function renderEmployees() {
       const hrs = getEmployeeAssignedHrs(emp.id);
       const pct = hrs / CAP;
       const st  = capStatus(pct);
-      const chartRow = !emp.implant
-        ? '<tr><td colspan="7" style="padding:2px 14px 12px 56px;border-bottom:1px solid var(--rule)">'
-          + buildEmpHoursChart(emp) + '</td></tr>'
-        : '';
       return '<tr>'
         + '<td><div style="display:flex;align-items:center;gap:10px">'
-        + makeAvatar(emp.name)
+        + makeAvatar(emp.name, '', emp.avatarColor)
         + '<div><div style="font-weight:700">' + emp.name + (emp.implant ? '<span class="badge ok" style="margin-left:6px;font-size:.55rem">Implant</span>' : '') + '</div>'
         + (emp.role ? '<div style="font-size:.7rem;color:var(--ink-soft)">' + emp.role + '</div>' : '')
         + '</div></div></td>'
@@ -2331,7 +2333,7 @@ function renderEmployees() {
         + '<td style="display:flex;gap:4px">'
         + '<button class="btn-del-row" onclick="openEditEmployee(' + emp.id + ',\'billable\')" title="Editar" style="color:var(--accent);font-size:.8rem">✏</button>'
         + '<button class="btn-del-row" onclick="deleteEmployee(' + emp.id + ')">×</button>'
-        + '</td></tr>' + chartRow;
+        + '</td></tr>';
     }).join('');
   }
   document.getElementById('emp-count').textContent = employees.length ? `(${employees.length})` : '';
@@ -2797,17 +2799,37 @@ function openEditEmployee(id, cat) {
   document.getElementById('ee-overhead').value = person.overhead != null ? person.overhead : OVERHEAD_RATE;
   document.getElementById('ee-util').value     = person.util     != null ? person.util     : 50;
 
-  // Set implant button state
+  // Avatar color picker
+  const colorPicker = document.getElementById('ee-avatar-color');
+  if (colorPicker) {
+    if (person.avatarColor) {
+      colorPicker.value = person.avatarColor;
+    } else {
+      const style = getAvatarStyle(person.name);
+      // Convert rgba to hex approximation — just use a preset
+      colorPicker.value = '#b0b8c8';
+    }
+    updateEeAvatarPreview();
+  }
+
   _editIsImplant = !!person.implant;
   refreshImplantBtn();
 
-  // determine type
   let typeVal = 'billable';
   if (cat === 'corporate') typeVal = person._combined ? 'combined' : 'corporate';
   document.getElementById('ee-type').value = typeVal;
 
   updateEePreview();
   document.getElementById('modal-edit-employee').classList.add('open');
+}
+
+function updateEeAvatarPreview() {
+  const colorPicker = document.getElementById('ee-avatar-color');
+  const preview     = document.getElementById('ee-avatar-preview');
+  const nameEl      = document.getElementById('ee-name');
+  if (!colorPicker || !preview) return;
+  const name = nameEl ? nameEl.value.trim() : '';
+  preview.innerHTML = makeAvatar(name || 'EJ', '', colorPicker.value);
 }
 
 let _editIsImplant = false;
@@ -2844,34 +2866,52 @@ function refreshImplantBtn() {
 }
 
 function updateEePreview() {
-  const base        = parseFloat(document.getElementById('ee-salary').value)   || 0;
-  const oh          = parseFloat(document.getElementById('ee-overhead').value)  ?? OVERHEAD_RATE;
-  const utilPct     = parseFloat(document.getElementById('ee-util').value)      ?? 50;
-  const utilRate    = utilPct / 100;
+  const section = document.getElementById('ee-preview-section');
+  if (!section) return;
 
-  // Fórmula idéntica al Cotizador:
-  // 1. costoDir + overhead = costoTotal (sin IVA)
-  // 2. precioSinIva = costoTotal / (1 - util)
-  // 3. precioConIva = precioSinIva × 1.16
-  const overheadAmt  = base * oh;
-  const costoTotal   = base + overheadAmt;                                    // sin IVA
-  const ivaAlg       = costoTotal * IVA;                                      // IVA sobre costo ALG
-  const costoConIva  = costoTotal + ivaAlg;                                   // lo que cuesta a ALG
-  const precioSinIva = utilRate < 1 ? costoTotal / (1 - utilRate) : costoTotal * 2;
-  const precioConIva = precioSinIva * (1 + IVA);                              // lo que se cobra al cliente
+  if (_editIsImplant) {
+    // ── Implant: show cost/price preview ──────────────────────
+    const base      = parseFloat(document.getElementById('ee-salary').value)   || 0;
+    const oh        = parseFloat(document.getElementById('ee-overhead').value)  || OVERHEAD_RATE;
+    const utilPct   = parseFloat(document.getElementById('ee-util').value)      || 50;
+    const utilRate  = utilPct / 100;
+    const overheadAmt  = base * oh;
+    const costoTotal   = base + overheadAmt;
+    const ivaAlg       = costoTotal * IVA;
+    const costoConIva  = costoTotal + ivaAlg;
+    const precioSinIva = utilRate < 1 ? costoTotal / (1 - utilRate) : costoTotal * 2;
+    const precioConIva = precioSinIva * (1 + IVA);
 
-  document.getElementById('ee-base-preview').textContent     = fmt(base);
-  document.getElementById('ee-overhead-label').textContent   = oh + '×';
-  document.getElementById('ee-overhead-preview').textContent = fmt(overheadAmt);
-  document.getElementById('ee-iva-preview').textContent      = fmt(ivaAlg);
-  document.getElementById('ee-total-preview').textContent    = fmt(costoConIva);
-  document.getElementById('ee-util-label').textContent       = utilPct + '%';
-  document.getElementById('ee-precio-preview').textContent     = fmt(precioSinIva);
-  const precioIvaEl = document.getElementById('ee-precio-iva-preview');
-  if (precioIvaEl) precioIvaEl.textContent = fmt(precioConIva);
+    section.innerHTML =
+      '<div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:10px">Preview — Costo y precio</div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:.82rem;padding:4px 0"><span>Honorarios base:</span><span style="font-family:var(--mono)">' + fmt(base) + '</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-soft);padding:4px 0"><span>Overhead (' + oh + '×):</span><span style="font-family:var(--mono)">' + fmt(overheadAmt) + '</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--amber);padding:4px 0"><span>IVA 16%:</span><span style="font-family:var(--mono)">' + fmt(ivaAlg) + '</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:700;padding:6px 0 4px;border-top:1px solid rgba(255,255,255,.08);margin-top:4px"><span>Costo real ALG:</span><span style="font-family:var(--mono);color:var(--accent-2)">' + fmt(costoConIva) + '</span></div>'
+      + '<div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0"></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:.82rem;padding:4px 0"><span>Precio sin IVA (' + utilPct + '% util):</span><span style="font-family:var(--mono);color:var(--green)">' + fmt(precioSinIva) + '</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:.88rem;font-weight:700;padding:4px 0"><span>Precio c/IVA:</span><span style="font-family:var(--mono);color:var(--green)">' + fmt(precioConIva) + '</span></div>';
+
+    // keep legacy element IDs in sync for saveEditEmployee
+    ['ee-base-preview','ee-overhead-preview','ee-iva-preview','ee-total-preview',
+     'ee-precio-preview','ee-precio-iva-preview','ee-overhead-label','ee-util-label'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '';
+    });
+  } else {
+    // ── Non-implant: show hours distribution chart ────────────
+    const emp = _editEmpId
+      ? (employees.find(e=>e.id===_editEmpId) || corporates.find(c=>c.id===_editEmpId))
+      : null;
+    if (emp) {
+      section.innerHTML =
+        '<div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:10px">Distribución de horas</div>'
+        + buildEmpHoursChart(emp);
+    } else {
+      section.innerHTML = '<div style="font-size:.72rem;color:var(--ink-soft)">Guarda primero para ver el gráfico.</div>';
+    }
+  }
 }
-
-document.getElementById('ee-salary').addEventListener('input', updateEePreview);
 
 function saveEditEmployee() {
   if (_editEmpId === null) return;
@@ -2891,9 +2931,10 @@ function saveEditEmployee() {
   employees  = employees.filter(e => e.id !== _editEmpId);
   corporates = corporates.filter(c => c.id !== _editEmpId);
 
-  const overhead = parseFloat(document.getElementById('ee-overhead').value) ?? OVERHEAD_RATE;
-  const util     = parseFloat(document.getElementById('ee-util').value)     ?? 50;
-  const base = { id: _editEmpId, name, role, salary, overhead, util, implant: _editIsImplant, _combined: isCombined };
+  const overhead     = parseFloat(document.getElementById('ee-overhead').value) ?? OVERHEAD_RATE;
+  const util         = parseFloat(document.getElementById('ee-util').value)     ?? 50;
+  const avatarColor  = document.getElementById('ee-avatar-color')?.value || null;
+  const base = { id: _editEmpId, name, role, salary, overhead, util, implant: _editIsImplant, _combined: isCombined, avatarColor };
 
   if (isBillable)  employees.push({...base});
   if (isCorporate) corporates.push({...base, _combined: isCombined});
