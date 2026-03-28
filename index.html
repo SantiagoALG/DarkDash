@@ -2418,10 +2418,7 @@ function renderEmployees() {
         ? '<span style="font-size:.65rem;color:var(--ink-soft);font-family:var(--mono)">' + emp.corpHrs + 'h corp</span>'
         : '<span style="font-size:.65rem;color:var(--ink-soft)">—</span>';
 
-      const chartRow = !emp.implant
-        ? '<tr><td colspan="9" style="padding:2px 14px 12px 56px;border-bottom:1px solid var(--rule)">'
-          + buildEmpHoursChart(emp) + '</td></tr>'
-        : '';
+      const chartRow = ''; // chart only shown in edit modal, not in table
 
       return '<tr>'
         + '<td><div style="display:flex;align-items:center;gap:10px">'
