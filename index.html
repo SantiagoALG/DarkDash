@@ -885,8 +885,10 @@ select { cursor: pointer; }
           <tr>
             <th>Nombre</th>
             <th class="r">Honorarios/mes</th>
-            <th class="r">Hrs asignadas</th>
-            <th class="r">% Ocupación</th>
+            <th class="r">Hrs proyecto</th>
+            <th class="r">Hrs corp.</th>
+            <th class="r">Total / Cap.</th>
+            <th class="r">% Ocup.</th>
             <th>Estado</th>
             <th style="width:60px"></th>
           </tr>
@@ -1240,6 +1242,18 @@ select { cursor: pointer; }
         </select>
       </div>
     </div>
+    <!-- Horas corporativas -->
+    <div style="display:flex;align-items:center;gap:14px;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;margin-bottom:10px">
+      <div style="flex:1">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:2px">Horas corporativas / mes</div>
+        <div style="font-size:.7rem;color:var(--ink-soft)">Cotizaciones, RRHH, ventas, operaciones, etc. Suman a la capacidad total.</div>
+      </div>
+      <input type="number" id="ee-corp-hrs" placeholder="0" min="0" max="120" step="1"
+        style="width:72px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:var(--mono);font-size:1rem;font-weight:600;padding:8px 10px;text-align:center"
+        oninput="updateEePreview()">
+      <div style="font-size:.75rem;color:var(--ink-soft)">hrs</div>
+    </div>
+
     <!-- Implant + Overhead -->
     <div style="border:1.5px solid var(--paper-3);border-radius:6px;overflow:hidden;margin-top:4px">
       <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--paper-2);border-bottom:1px solid var(--paper-3)">
@@ -1656,14 +1670,15 @@ const IVA      = 0.16; // IVA aplicado a honorarios
 function getEmployeeAssignedHrs(empId) {
   let hrs = 0;
   projects.forEach(p => {
-    // Producción
     const a = (p.assignments||[]).find(x => x.empId === empId);
     if (a) hrs += (a.hrs || 0);
-    // Juntas: cada miembro afectado asiste a TODAS las horas de junta
     if (p.juntas && p.juntas.hrs > 0 && (p.juntas.members||[]).includes(empId)) {
       hrs += p.juntas.hrs;
     }
   });
+  // Horas corporativas/operacionales del colaborador
+  const emp = employees.find(e => e.id === empId);
+  if (emp && emp.corpHrs) hrs += emp.corpHrs;
   return hrs;
 }
 
@@ -2192,6 +2207,10 @@ function buildEmpHoursChart(emp) {
     return '<div style="font-size:.72rem;color:var(--ink-soft);padding:6px 0">Sin horas asignadas este mes.</div>';
   }
   const rows = [];
+  // Corporate/operational hours row
+  if (emp.corpHrs > 0) {
+    rows.push({ label: 'Corporativo / Operacional', color: '#606880', prodHrs: emp.corpHrs, juntasHrs: 0, total: emp.corpHrs, isCorp: true });
+  }
   projects.forEach(p => {
     const a = (p.assignments||[]).find(x => x.empId === emp.id);
     const prodHrs = a ? (a.hrs||0) : 0;
@@ -2200,10 +2219,10 @@ function buildEmpHoursChart(emp) {
       juntasHrs = p.juntas.hrs;
     }
     const total = prodHrs + juntasHrs;
-    if (total > 0) rows.push({ proj:p, prodHrs, juntasHrs, total });
+    if (total > 0) rows.push({ label: p.name, color: p.color, prodHrs, juntasHrs, total, isCorp: false });
   });
 
-  if (!rows.length) return '<div style="font-size:.72rem;color:var(--ink-soft);padding:6px 0">Sin proyectos asignados.</div>';
+  if (!rows.length) return '<div style="font-size:.72rem;color:var(--ink-soft);padding:6px 0">Sin horas asignadas.</div>';
 
   const maxH   = Math.max(...rows.map(r => r.total));
   const capPct = Math.min(totalHrs/CAP*100,100).toFixed(0);
@@ -2212,10 +2231,14 @@ function buildEmpHoursChart(emp) {
   const filled = Math.min(totalHrs/CAP,1) * circ;
 
   const bars = rows.map(r => {
-    const pct = maxH > 0 ? (r.total/maxH*100).toFixed(1) : 0;
+    const pct  = maxH > 0 ? (r.total/maxH*100).toFixed(1) : 0;
+    const dotStyle = r.isCorp
+      ? 'width:7px;height:7px;border-radius:2px;background:' + r.color + ';margin-right:5px;vertical-align:middle;display:inline-block'
+      : 'width:7px;height:7px;border-radius:50%;background:' + r.color + ';margin-right:5px;vertical-align:middle;display:inline-block';
     return '<div class="emp-bar-row">'
-      + '<div class="emp-bar-proj-name"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + r.proj.color + ';margin-right:5px;vertical-align:middle"></span>' + r.proj.name + '</div>'
-      + '<div class="emp-bar-track"><div class="emp-bar-fill" style="width:' + pct + '%;background:' + r.proj.color + ';opacity:.85"></div>'
+      + '<div class="emp-bar-proj-name" title="' + r.label + '"><span style="' + dotStyle + '"></span>' + r.label + '</div>'
+      + '<div class="emp-bar-track">'
+      + '<div class="emp-bar-fill" style="width:' + pct + '%;background:' + r.color + ';opacity:' + (r.isCorp ? '.5' : '.85') + '"></div>'
       + (r.juntasHrs > 0 ? '<div style="position:absolute;right:0;top:0;height:100%;width:' + (r.juntasHrs/r.total*pct).toFixed(1) + '%;background:var(--amber);opacity:.5;border-radius:0 4px 4px 0"></div>' : '')
       + '</div>'
       + '<div class="emp-bar-hrs">' + r.total.toFixed(0) + 'h</div>'
@@ -2316,6 +2339,10 @@ function renderEmployees() {
       const hrs = getEmployeeAssignedHrs(emp.id);
       const pct = hrs / CAP;
       const st  = capStatus(pct);
+      const projHrs = hrs - (emp.corpHrs||0);  // hrs sin corporativo
+      const corpTag = emp.corpHrs > 0
+        ? '<span style="font-size:.65rem;color:var(--ink-soft);font-family:var(--mono)">' + (emp.corpHrs) + 'h corp</span>'
+        : '<span style="font-size:.65rem;color:var(--ink-soft)">—</span>';
       return '<tr>'
         + '<td><div style="display:flex;align-items:center;gap:10px">'
         + makeAvatar(emp.name, '', emp.avatarColor)
@@ -2323,7 +2350,9 @@ function renderEmployees() {
         + (emp.role ? '<div style="font-size:.7rem;color:var(--ink-soft)">' + emp.role + '</div>' : '')
         + '</div></div></td>'
         + '<td class="r">' + fmt(emp.salary||0) + '</td>'
-        + '<td class="r">' + hrs.toFixed(0) + ' / ' + CAP + '</td>'
+        + '<td class="r" style="font-family:var(--mono)">' + projHrs.toFixed(0) + '</td>'
+        + '<td class="r">' + corpTag + '</td>'
+        + '<td class="r" style="font-family:var(--mono);font-weight:600">' + hrs.toFixed(0) + ' / ' + CAP + '</td>'
         + '<td class="r">' + fmtPct(pct) + '</td>'
         + '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>'
         + '<td class="r" style="color:var(--ink-soft);font-size:.75rem">' + fmt((emp.salary||0)*1.16) + '</td>'
@@ -2796,6 +2825,10 @@ function openEditEmployee(id, cat) {
   document.getElementById('ee-overhead').value = person.overhead != null ? person.overhead : OVERHEAD_RATE;
   document.getElementById('ee-util').value     = person.util     != null ? person.util     : 50;
 
+  // Corporate hours
+  const corpHrsEl = document.getElementById('ee-corp-hrs');
+  if (corpHrsEl) corpHrsEl.value = person.corpHrs || '';
+
   // Avatar color picker
   const colorPicker = document.getElementById('ee-avatar-color');
   if (colorPicker) {
@@ -2931,7 +2964,8 @@ function saveEditEmployee() {
   const overhead     = parseFloat(document.getElementById('ee-overhead').value) ?? OVERHEAD_RATE;
   const util         = parseFloat(document.getElementById('ee-util').value)     ?? 50;
   const avatarColor  = document.getElementById('ee-avatar-color')?.value || null;
-  const base = { id: _editEmpId, name, role, salary, overhead, util, implant: _editIsImplant, _combined: isCombined, avatarColor };
+  const corpHrs      = parseFloat(document.getElementById('ee-corp-hrs')?.value) || 0;
+  const base = { id: _editEmpId, name, role, salary, overhead, util, implant: _editIsImplant, _combined: isCombined, avatarColor, corpHrs };
 
   if (isBillable)  employees.push({...base});
   if (isCorporate) corporates.push({...base, _combined: isCombined});
