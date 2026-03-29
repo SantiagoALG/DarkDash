@@ -671,7 +671,7 @@ select { cursor: pointer; }
   </div>
   <div id="sync-status" style="margin-left:12px"></div>
   <nav>
-    <button class="active" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="active" onclick="showPage('dashboard')" title="Dashboard" style="width:36px;height:36px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(255,255,255,.7)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
     <button onclick="showPage('projects')">Proyectos</button>
     <button onclick="showPage('employees')">Equipo</button>
     <button onclick="showPage('vendors')">Proveedores</button>
@@ -1024,9 +1024,32 @@ select { cursor: pointer; }
       <label>Total del proyecto ($)</label>
       <input type="number" id="p-total" placeholder="0" min="0" step="1000">
     </div>
-    <div class="field-group">
-      <label>Color de identificación</label>
-      <input type="color" id="p-color" value="#1a3a8f" style="height:38px;padding:4px;cursor:pointer">
+    <div class="field-row">
+      <div class="field-group">
+        <label>Color de identificación</label>
+        <input type="color" id="p-color" value="#1a3a8f" style="height:38px;padding:4px;cursor:pointer">
+      </div>
+      <div class="field-group">
+        <label>Logo del cliente</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="p-logo-url" placeholder="https://… URL de imagen"
+            style="flex:1" oninput="updateLogoPreview()">
+          <label style="cursor:pointer;display:flex;align-items:center;padding:0 10px;
+            border:1px solid var(--paper-3);border-radius:var(--radius);
+            background:var(--paper);color:var(--ink-soft);font-size:.72rem;white-space:nowrap;
+            font-family:var(--sans)" title="Subir desde tu equipo">
+            📁
+            <input type="file" accept="image/*" onchange="handleLogoUpload(event)" style="display:none">
+          </label>
+        </div>
+        <div id="p-logo-preview" style="margin-top:6px;display:none">
+          <img id="p-logo-img" src="" alt="Logo"
+            style="height:32px;max-width:100px;object-fit:contain;border-radius:4px;
+                   background:rgba(255,255,255,.08);padding:4px">
+          <button onclick="clearLogo()" style="margin-left:6px;font-size:.65rem;
+            color:var(--accent-2);background:transparent;border:none;cursor:pointer">✕ Quitar</button>
+        </div>
+      </div>
     </div>
 
     <div class="separator"></div>
@@ -2389,12 +2412,22 @@ function renderProjects() {
     }).join('');
     const moreCount = (p.assignments||[]).length - 4;
 
+    const logoHTML = p.logoUrl
+      ? '<img src="' + p.logoUrl + '" alt="" '
+        + 'style="height:28px;max-width:72px;object-fit:contain;border-radius:6px;'
+        + 'background:rgba(255,255,255,.08);padding:3px 6px;flex-shrink:0" '
+        + 'onerror="this.style.display=String.fromCharCode(110,111,110,101)">'
+      : '';
+
     return '<div class="proj-card" onclick="openProjectModal(projects.find(x=>x.id===' + p.id + '))">'
       + '<div class="proj-card-top" style="background:' + p.color + '"></div>'
       + '<div class="proj-card-body">'
-      + '<div class="proj-card-name">' + p.name
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px">'
+      + '<div class="proj-card-name" style="margin-bottom:0">' + p.name
         + ' <span class="badge ' + typeCls + '" style="font-size:.58rem">' + typeLbl + '</span>'
         + (p._fromCotizador ? ' <span class="badge ok" style="font-size:.55rem">📋</span>' : '')
+      + '</div>'
+      + logoHTML
       + '</div>'
       + '<div class="proj-card-client">' + (p.client||'—') + '</div>'
       + '<div class="proj-card-kpis">'
@@ -2608,6 +2641,40 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) { const t = m.id.replace('modal-',''); closeModal(t); } });
 });
 
+
+// ── PROJECT LOGO ──────────────────────────────────────
+function updateLogoPreview() {
+  const url = document.getElementById('p-logo-url').value.trim();
+  const prev = document.getElementById('p-logo-preview');
+  const img  = document.getElementById('p-logo-img');
+  if (url) {
+    img.src = url;
+    prev.style.display = 'flex';
+    prev.style.alignItems = 'center';
+  } else {
+    prev.style.display = 'none';
+  }
+}
+
+function handleLogoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    document.getElementById('p-logo-url').value = dataUrl;
+    updateLogoPreview();
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function clearLogo() {
+  document.getElementById('p-logo-url').value = '';
+  document.getElementById('p-logo-preview').style.display = 'none';
+  document.getElementById('p-logo-img').src = '';
+}
+
 // ── PROJECT MODAL ──────────────────────
 let assignRows = [];
 
@@ -2627,6 +2694,8 @@ function openProjectModal(proj) {
     updateIncomePreview();
     renderJuntasMembersModal(proj.juntas?.members || []);
     document.getElementById('p-color').value  = proj.color;
+    document.getElementById('p-logo-url').value = proj.logoUrl || '';
+    updateLogoPreview();
     assignRows = (proj.assignments||[]).map(a => ({
       empId:     a.empId,
       hrs:       a.hrs || 0,
@@ -2646,6 +2715,7 @@ function openProjectModal(proj) {
 
 function clearProjectModal() {
   ['p-name','p-client','p-income','p-total'].forEach(id => document.getElementById(id).value = '');
+  clearLogo();
   document.getElementById('p-type').value     = 'iguala';
   document.getElementById('p-currency').value = 'MXN';
   document.getElementById('p-juntas-hrs').value  = '';
@@ -2875,6 +2945,7 @@ function saveProject() {
       members: _juntasMembers.slice(),
     },
     color:       document.getElementById('p-color').value,
+    logoUrl:     document.getElementById('p-logo-url').value.trim() || null,
     assignments: assignRows.map(a => {
       const hasBd = a.breakdown && a.breakdown.length > 0;
       const hrs   = hasBd ? a.breakdown.reduce((s,b)=>s+(b.hrs||0),0) : (a.hrs||0);
