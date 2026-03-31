@@ -3129,16 +3129,26 @@ function updateEePreview() {
       + '<div style="display:flex;justify-content:space-between;font-size:.82rem;padding:3px 0"><span>Precio sin IVA (' + utilPct + '% util):</span><span style="font-family:var(--mono);color:var(--green)">' + fmt(precioSinIva) + '</span></div>'
       + '<div style="display:flex;justify-content:space-between;font-size:.88rem;font-weight:700;padding:3px 0"><span>Precio c/IVA:</span><span style="font-family:var(--mono);color:var(--green)">' + fmt(precioConIva) + '</span></div>';
   } else {
-    // ── Non-implant: show hours distribution chart ────────
-    const emp = _editEmpId
-      ? (employees.find(e => e.id === _editEmpId) || corporates.find(c => c.id === _editEmpId))
-      : null;
-    if (emp) {
-      section.innerHTML =
-        '<div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px">Distribución de horas</div>'
-        + buildEmpHoursChart(emp);
+    // ── Check type from ee-type select ───────────────────
+    const currentType = document.getElementById('ee-type')?.value || 'billable';
+    const isCorporateOnly = (currentType === 'corporate');
+
+    if (isCorporateOnly) {
+      // Pure corporates: no hours, no cost preview
+      section.innerHTML = '<div style="font-size:.72rem;color:var(--ink-soft);padding:6px 0">'
+        + 'Empleado corporativo — sin asignación de horas a proyectos.</div>';
     } else {
-      section.innerHTML = '<div style="font-size:.72rem;color:var(--ink-soft)">Guarda primero para ver el gráfico.</div>';
+      // Billable / combined non-implant: show hours chart
+      const emp = _editEmpId
+        ? (employees.find(e => e.id === _editEmpId) || corporates.find(c => c.id === _editEmpId))
+        : null;
+      if (emp) {
+        section.innerHTML =
+          '<div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px">Distribución de horas</div>'
+          + buildEmpHoursChart(emp);
+      } else {
+        section.innerHTML = '<div style="font-size:.72rem;color:var(--ink-soft)">Guarda primero para ver el gráfico.</div>';
+      }
     }
   }
 }
@@ -3152,6 +3162,7 @@ function updateEeAvatarPreview() {
 }
 
 document.getElementById('ee-salary').addEventListener('input', updateEePreview);
+document.getElementById('ee-type').addEventListener('change', updateEePreview);
 
 function saveEditEmployee() {
   if (_editEmpId === null) return;
@@ -4192,706 +4203,139 @@ function renderOrgChart() {
 
   subtitle.textContent = allPpl.length + ' colaboradores';
 
-  // Build tree: find roots (no reportsTo or reportsTo not found)
-  const ids = new Set(allPpl.map(p => p.id));
-  const roots = allPpl.filter(p => !p.reportsTo || !ids.has(p.reportsTo));
-  const children = id => allPpl.filter(p => p.reportsTo === id);
+  const ids      = new Set(allPpl.map(p => p.id));
+  const roots    = allPpl.filter(p => !p.reportsTo || !ids.has(p.reportsTo));
+  const getKids  = id => allPpl.filter(p => p.reportsTo === id);
 
-  // Node card HTML
-  function nodeCard(person) {
-    const av   = makeAvatar(person.name, '', person.avatarColor);
-    const type = person._combined ? 'combinado' : (employees.find(e=>e.id===person.id) ? 'facturable' : 'corporativo');
-    const typeColor = type==='facturable' ? 'var(--accent)' : type==='combinado' ? 'var(--amber)' : 'var(--ink-soft)';
-    const kids = children(person.id);
+  // Build a node element (returns a DOM div)
+  function buildNode(person, depth) {
+    const isCorp  = !employees.find(e => e.id === person.id);
+    const type    = person._combined ? 'combinado' : (isCorp ? 'corporativo' : 'facturable');
+    const tColor  = type === 'facturable' ? '#b0b8c8' : type === 'combinado' ? '#b0b8c8' : '#6490dc';
+    const kids    = getKids(person.id);
 
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:0">'
-      // Node box
-      + '<div style="'
-        + 'background:rgba(255,255,255,.06);'
-        + 'border:1px solid rgba(255,255,255,.12);'
-        + 'border-top:2px solid ' + typeColor + ';'
-        + 'border-radius:10px;padding:14px 16px;'
-        + 'min-width:160px;max-width:200px;'
-        + 'text-align:center;position:relative;'
-        + 'box-shadow:0 4px 16px rgba(0,0,0,.3);">'
-        + '<div style="display:flex;justify-content:center;margin-bottom:8px">' + av + '</div>'
-        + '<div style="font-weight:700;font-size:.85rem;color:var(--ink);margin-bottom:2px">' + person.name + '</div>'
-        + (person.role ? '<div style="font-size:.7rem;color:var(--ink-soft);margin-bottom:6px">' + person.role + '</div>' : '')
-        + (person.description
-            ? '<div style="font-size:.68rem;color:var(--ink-soft);line-height:1.4;border-top:1px solid rgba(255,255,255,.07);padding-top:6px;margin-top:2px;text-align:left">'
-              + person.description.slice(0,120) + (person.description.length>120?'…':'')
-              + '</div>'
-            : '')
-        + '<span style="position:absolute;top:6px;right:8px;font-size:.55rem;font-weight:700;'
-          + 'color:' + typeColor + ';text-transform:uppercase;letter-spacing:.05em">' + type + '</span>'
-      + '</div>'
-      // Connector + children
-      + (kids.length ? (
-          // vertical line down
-          '<div style="width:2px;height:24px;background:rgba(255,255,255,.15)"></div>'
-          // horizontal bar + children row
-          + '<div style="display:flex;flex-direction:column;align-items:center">'
-          + (kids.length > 1
-              ? '<div style="display:flex;align-items:flex-start;gap:0">'
-                + kids.map((k, ki) => {
-                    const isFirst = ki === 0;
-                    const isLast  = ki === kids.length - 1;
-                    const isMid   = !isFirst && !isLast;
-                    return '<div style="display:flex;flex-direction:column;align-items:center">'
-                      + '<div style="height:2px;background:rgba(255,255,255,.15);'
-                        + 'width:' + (isFirst||isLast ? '50%' : '100%') + ';'
-                        + 'align-self:' + (isFirst ? 'flex-end' : isLast ? 'flex-start' : 'stretch') + '">'
-                      + '</div>'
-                      + '<div style="width:2px;height:20px;background:rgba(255,255,255,.15)"></div>'
-                      + nodeCard(k)
-                      + '</div>';
-                  }).join('')
-                + '</div>'
-              : nodeCard(kids[0])
-            )
-          + '</div>'
-        ) : '')
-      + '</div>';
-  }
+    // Avatar initials
+    const initials = person.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const avStyle  = person.avatarColor
+      ? 'background:' + person.avatarColor + '22;color:' + person.avatarColor
+      : 'background:rgba(176,184,200,.15);color:#b0b8c8';
 
-  // Render root nodes side by side
-  const html = '<div style="display:flex;gap:40px;align-items:flex-start;justify-content:center;flex-wrap:wrap">'
-    + roots.map(r => nodeCard(r)).join('')
-    + '</div>';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
 
-  container.innerHTML = html;
-}
+    // ── Node card ──
+    const card = document.createElement('div');
+    card.style.cssText =
+      'background:rgba(255,255,255,.06);'
+      + 'border:1px solid rgba(255,255,255,.1);'
+      + 'border-top:3px solid ' + tColor + ';'
+      + 'border-radius:10px;padding:12px 14px;'
+      + 'min-width:150px;max-width:190px;width:170px;'
+      + 'text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);'
+      + 'position:relative;cursor:default;';
 
-// ── PAGES ──────────────────────────────
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('header nav button').forEach(function(b){b.classList.remove('active');});
-  event.target.classList.add('active');
-  if (id==='pipeline') renderPipeline();
-  else renderAll();
-}
+    // type badge
+    const badge = document.createElement('span');
+    badge.style.cssText = 'position:absolute;top:6px;right:8px;font-size:.52rem;font-weight:700;'
+      + 'text-transform:uppercase;letter-spacing:.04em;color:' + tColor;
+    badge.textContent = type;
+    card.appendChild(badge);
 
-// ── TOAST ──────────────────────────────
-// ══════════════════════════════════════════════════════
-// IMPORT COTIZACIÓN → DASHBOARD
-// ══════════════════════════════════════════════════════
-let _importData    = null;  // parsed JSON
-let _importMapping = {};    // { cotizadorName: dashboardEmpId | null }
-let _importDest    = 'project'; // 'project' | 'pipeline'
+    // avatar
+    const avDiv = document.createElement('div');
+    avDiv.style.cssText = 'width:34px;height:34px;border-radius:50%;display:flex;align-items:center;'
+      + 'justify-content:center;font-family:var(--mono);font-size:.65rem;font-weight:700;'
+      + 'margin:0 auto 8px;border:1.5px solid rgba(255,255,255,.1);' + avStyle;
+    avDiv.textContent = initials;
+    card.appendChild(avDiv);
 
-// Fuzzy name match: find best employee by name similarity
-function fuzzyMatch(cotName, empList) {
-  const norm = s => s.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9]/g,' ').trim();
-  const cn = norm(cotName);
+    // name
+    const nameEl = document.createElement('div');
+    nameEl.style.cssText = 'font-weight:700;font-size:.82rem;color:var(--ink);margin-bottom:2px;line-height:1.2';
+    nameEl.textContent = person.name;
+    card.appendChild(nameEl);
 
-  let best = null, bestScore = 0;
-  empList.forEach(emp => {
-    const en = norm(emp.name);
-    // Check if either contains the other, or shares first word
-    const cnWords = cn.split(' ');
-    const enWords = en.split(' ');
-    let score = 0;
-    cnWords.forEach(cw => enWords.forEach(ew => {
-      if (cw.length > 2 && ew.length > 2) {
-        if (cw === ew) score += 3;
-        else if (cw.startsWith(ew) || ew.startsWith(cw)) score += 2;
-        else if (cw.includes(ew) || ew.includes(cw)) score += 1;
+    // role
+    if (person.role) {
+      const roleEl = document.createElement('div');
+      roleEl.style.cssText = 'font-size:.68rem;color:var(--ink-soft);margin-bottom:6px';
+      roleEl.textContent = person.role;
+      card.appendChild(roleEl);
+    }
+
+    // description
+    if (person.description) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'height:1px;background:rgba(255,255,255,.07);margin:4px 0 6px';
+      card.appendChild(sep);
+      const desc = document.createElement('div');
+      desc.style.cssText = 'font-size:.64rem;color:var(--ink-soft);text-align:left;line-height:1.4';
+      const txt = person.description;
+      desc.textContent = txt.length > 110 ? txt.slice(0,110) + '…' : txt;
+      card.appendChild(desc);
+    }
+
+    wrap.appendChild(card);
+
+    if (!kids.length) return wrap;
+
+    // ── Connector line down ──
+    const lineDown = document.createElement('div');
+    lineDown.style.cssText = 'width:2px;height:20px;background:rgba(255,255,255,.15);flex-shrink:0';
+    wrap.appendChild(lineDown);
+
+    // ── Children row ──
+    const childRow = document.createElement('div');
+    childRow.style.cssText = 'display:flex;align-items:flex-start;gap:0;position:relative';
+
+    kids.forEach((kid, ki) => {
+      const childWrap = document.createElement('div');
+      childWrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:0 12px;position:relative';
+
+      // horizontal branch line
+      const hLine = document.createElement('div');
+      hLine.style.cssText = 'height:2px;background:rgba(255,255,255,.15);width:100%;margin-bottom:0;';
+
+      // If only one child, skip horizontal lines
+      if (kids.length > 1) {
+        hLine.style.width    = '100%';
+        hLine.style.display  = 'block';
+        const vConnector = document.createElement('div');
+        vConnector.style.cssText = 'width:2px;height:20px;background:rgba(255,255,255,.15)';
+        childWrap.appendChild(hLine);
+        childWrap.appendChild(vConnector);
       }
-    }));
-    if (score > bestScore) { bestScore = score; best = emp; }
-  });
-  return bestScore > 0 ? best : null;
-}
 
-function importCotizacion(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (data._version !== 'alg-cotizador-v1') throw new Error('Formato no reconocido');
-      _importData = data;
-      openImportModal();
-    } catch(err) {
-      showToast('Error al leer el archivo: ' + err.message);
-    }
-    event.target.value = '';
-  };
-  reader.readAsText(file);
-}
-
-function setImportDest(dest) {
-  _importDest = dest;
-  const projBtn = document.getElementById('import-dest-project');
-  const plBtn   = document.getElementById('import-dest-pipeline');
-  const projFld = document.getElementById('import-project-fields');
-  const plFld   = document.getElementById('import-pipeline-fields');
-  const confBtn = document.getElementById('import-confirm-btn');
-  const outsrcTitle = document.getElementById('import-outsrc-title');
-
-  if (dest === 'project') {
-    projBtn.style.borderColor  = 'rgba(38,166,91,.5)';
-    projBtn.style.background   = 'rgba(38,166,91,.15)';
-    plBtn.style.borderColor    = 'rgba(255,255,255,.1)';
-    plBtn.style.background     = 'rgba(255,255,255,.04)';
-    if (projFld) projFld.style.display = 'block';
-    if (plFld)   plFld.style.display   = 'none';
-    if (confBtn) { confBtn.textContent = '✅ Crear proyecto'; confBtn.style.background = 'var(--green)'; }
-    if (outsrcTitle) outsrcTitle.textContent = 'Proveedores a crear';
-  } else {
-    plBtn.style.borderColor    = 'rgba(100,144,220,.5)';
-    plBtn.style.background     = 'rgba(100,144,220,.12)';
-    projBtn.style.borderColor  = 'rgba(255,255,255,.1)';
-    projBtn.style.background   = 'rgba(255,255,255,.04)';
-    if (projFld) projFld.style.display = 'none';
-    if (plFld)   plFld.style.display   = 'block';
-    // Populate owner dropdown
-    const ownerSel = document.getElementById('import-pl-owner');
-    if (ownerSel) {
-      ownerSel.innerHTML = '<option value="">— Sin asignar —</option>'
-        + employees.map(e => '<option value="' + e.id + '">' + e.name + '</option>').join('');
-    }
-    if (confBtn) { confBtn.textContent = '🔵 Agregar al pipeline'; confBtn.style.background = '#6490dc'; }
-    if (outsrcTitle) outsrcTitle.textContent = 'Proveedores estimados (incluidos en la oportunidad)';
-  }
-}
-
-function openImportModal() {
-  const d = _importData;
-  if (!d) return;
-
-  // Reset to project dest by default
-  _importDest = 'project';
-  setImportDest('project');
-
-  // Meta block
-  document.getElementById('import-meta').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-      <div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Cliente</div><strong>${d.meta.cliente}</strong></div>
-      <div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Proyecto</div><strong>${d.meta.proyecto}</strong></div>
-      <div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Fecha</div>${d.meta.fecha}</div>
-    </div>
-    <div style="margin-top:8px;display:flex;gap:16px;font-size:.78rem;color:var(--ink-soft)">
-      <span>Overhead: <strong>${d.params.overhead}</strong></span>
-      <span>Utilidad: <strong>${(d.params.utilidad*100).toFixed(0)}%</strong></span>
-      <span>Dcto: <strong>${(d.params.descuento*100).toFixed(0)}%</strong></span>
-      <span>Hrs totales: <strong>${d.totales.hrs}</strong></span>
-    </div>`;
-
-  // Service selector
-  const svcWrap = document.getElementById('import-svc-wrap');
-  const svcSel  = document.getElementById('import-svc-select');
-  if (d.servicios.length > 1) {
-    svcWrap.style.display = 'block';
-    svcSel.innerHTML = d.servicios.map((s,i) =>
-      `<option value="${i}">${s.nombre} (${s.hrsTotal} hrs · ${fmt(s.precioLleno)})</option>`
-    ).join('') + `<option value="all">— Todos los servicios como un proyecto —</option>`;
-  } else {
-    svcWrap.style.display = 'none';
-  }
-
-  renderImportMapping();
-  document.getElementById('modal-import-cot').classList.add('open');
-}
-
-function getSelectedServicio() {
-  const d   = _importData;
-  const sel = document.getElementById('import-svc-select');
-  if (!sel || d.servicios.length === 1) return d.servicios[0];
-  const val = sel.value;
-  if (val === 'all') {
-    // Merge all services into one virtual service
-    const merged = { nombre: d.meta.proyecto, hrsTotal: 0, costoAlg: 0, precioLleno: 0, colaboradores: [], outsourcing: [] };
-    d.servicios.forEach(s => {
-      merged.hrsTotal    += s.hrsTotal;
-      merged.costoAlg    += s.costoAlg;
-      merged.precioLleno += s.precioLleno;
-      merged.outsourcing  = merged.outsourcing.concat(s.outsourcing || []);
-      // Merge collaborators
-      s.colaboradores.forEach(c => {
-        const ex = merged.colaboradores.find(x => x.name === c.name);
-        if (ex) {
-          ex.hrs        += c.hrs;
-          ex.costoAlg   += c.costoAlg;
-          ex.precioLleno+= c.precioLleno;
-          ex.actividades = ex.actividades.concat(c.actividades || []);
-        } else {
-          merged.colaboradores.push({...c, actividades: [...(c.actividades||[])]});
-        }
-      });
+      childWrap.appendChild(buildNode(kid, depth + 1));
+      childRow.appendChild(childWrap);
     });
-    return merged;
-  }
-  return d.servicios[parseInt(val)];
-}
 
-function renderImportMapping() {
-  const svc = getSelectedServicio();
-  _importMapping = {};
-
-  // Auto-map
-  svc.colaboradores.forEach(c => {
-    if (c.name === 'JUNTAS**') {
-      // Distribute juntas across employees in service
-      _importMapping[c.name] = '__juntas__';
+    // Draw connecting horizontal line across all children
+    if (kids.length > 1) {
+      const hBar = document.createElement('div');
+      hBar.style.cssText = 'position:absolute;top:0;left:50px;right:50px;height:2px;background:rgba(255,255,255,.15)';
+      childRow.style.position = 'relative';
+      childRow.appendChild(hBar);
     } else {
-      const match = fuzzyMatch(c.name, employees);
-      _importMapping[c.name] = match ? match.id : null;
+      // Single child — just a straight vertical connector
+      const singleConnector = document.createElement('div');
+      singleConnector.style.cssText = 'width:2px;height:20px;background:rgba(255,255,255,.15)';
+      wrap.appendChild(singleConnector);
     }
-  });
 
-  // Render mapping rows
-  const container = document.getElementById('import-mapping');
-  container.innerHTML = svc.colaboradores.map(c => {
-    const mapped  = _importMapping[c.name];
-    const isJunta = c.name === 'JUNTAS**';
-    const matchEmp = mapped && !isJunta ? employees.find(e => e.id === mapped) : null;
-    const confidence = matchEmp ? '✓ Auto' : (isJunta ? '⏱' : '⚠ Sin match');
-    const confColor  = matchEmp ? 'var(--green)' : isJunta ? 'var(--amber)' : 'var(--accent-2)';
-
-    return `<div style="display:grid;grid-template-columns:140px 1fr 100px 80px;gap:0;border:1.5px solid var(--paper-3);border-radius:6px;overflow:hidden;align-items:center">
-      <div style="padding:8px 10px;border-right:1px solid var(--paper-2);font-weight:600;font-size:.82rem">${c.name}</div>
-      <div style="padding:4px 8px;border-right:1px solid var(--paper-2)">
-        ${isJunta
-          ? `<span style="font-size:.78rem;color:var(--amber);font-style:italic">Distribuidas como ⏱ Junta</span>`
-          : `<select style="border:none;background:transparent;font-family:var(--sans);font-size:.8rem;width:100%;cursor:pointer"
-              onchange="_importMapping['${c.name}']=this.value==='null'?null:parseInt(this.value)">
-              <option value="null">— Sin asignar —</option>
-              ${employees.map(e=>`<option value="${e.id}" ${e.id===mapped?'selected':''}>${e.name} · ${e.role||''}</option>`).join('')}
-            </select>`}
-      </div>
-      <div style="padding:8px 10px;border-right:1px solid var(--paper-2);font-family:var(--mono);font-size:.78rem;text-align:right">${c.hrs.toFixed(0)} hrs</div>
-      <div style="padding:8px 10px;font-size:.72rem;font-weight:700;color:${confColor};text-align:center">${confidence}</div>
-    </div>`;
-  }).join('');
-
-  // Outsourcing preview
-  const oWrap = document.getElementById('import-outsrc-wrap');
-  const oList = document.getElementById('import-outsrc-list');
-  if (svc.outsourcing && svc.outsourcing.length) {
-    oWrap.style.display = 'block';
-    oList.innerHTML = svc.outsourcing.map(o => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border:1.5px solid var(--paper-3);border-radius:5px;margin-bottom:5px;font-size:.82rem">
-        <span>📦 ${o.desc}</span>
-        <span style="font-family:var(--mono);color:var(--amber)">Costo: ${fmt(o.costo)} · Markup: ${o.markup}%</span>
-      </div>`).join('');
-  } else {
-    oWrap.style.display = 'none';
+    wrap.appendChild(childRow);
+    return wrap;
   }
 
-  // Income preview
-  document.getElementById('import-income-preview').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--green);font-weight:700;margin-bottom:2px">Ingreso que entra al Dashboard</div>
-        <div style="font-family:var(--mono);font-size:1.2rem;font-weight:700;color:var(--green)">${fmt(svc.precioLleno)}</div>
-        <div style="font-size:.72rem;color:var(--ink-soft)">Precio sin descuento (potencial máximo) · IVA se agrega en Dashboard</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:.72rem;color:var(--ink-soft)">Costo ALG: <span style="font-family:var(--mono)">${fmt(svc.costoAlg)}</span></div>
-        <div style="font-size:.72rem;color:var(--ink-soft)">${svc.hrsTotal} hrs totales</div>
-      </div>
-    </div>`;
-}
-
-function confirmImportCotizacion() {
-  const d   = _importData;
-  const svc = getSelectedServicio();
-  if (!d || !svc) return;
-
-  if (_importDest === 'pipeline') {
-    // ── TO PIPELINE ──────────────────────────────────────
-    const stage     = document.getElementById('import-pl-stage')?.value || 'propuesta';
-    const prob      = parseInt(document.getElementById('import-pl-prob')?.value) || 60;
-    const closeDate = document.getElementById('import-pl-date')?.value || null;
-    const ownerId   = parseInt(document.getElementById('import-pl-owner')?.value) || null;
-
-    const vendorLines = (svc.outsourcing||[]).map(o =>
-      (o.desc||'Proveedor') + ': ' + fmt(o.costo||0) + ' → cobro ' + fmt(o.precioLleno||0)
-    );
-
-    const opp = {
-      id:        uid(),
-      name:      svc.nombre || d.meta.proyecto,
-      client:    d.meta.cliente,
-      stage,  prob,  closeDate,  ownerId,
-      value:     svc.precioLleno,
-      service:   svc.nombre || d.meta.proyecto,
-      notes:     [
-        'Importado del Cotizador.',
-        'Overhead: ' + d.params.overhead + '× · Utilidad: ' + (d.params.utilidad*100).toFixed(0) + '%',
-        vendorLines.length ? 'Proveedores: ' + vendorLines.join(' | ') : '',
-      ].filter(Boolean).join(' '),
-      _fromCot: true,
-    };
-
-    pipeline.push(opp);
-    closeModal('import-cot');
-    _importData = null;
-    renderAll();
-
-    // Switch to pipeline tab
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-pipeline').classList.add('active');
-    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
-    Array.from(document.querySelectorAll('header nav button'))
-      .find(b => b.textContent.trim().toUpperCase() === 'PIPELINE')?.classList.add('active');
-    setPipelineView(_plView);
-    showToast('"' + opp.name + '" agregado al pipeline ✓');
-    if (SUPABASE_READY) sbSave('alg_pipeline', opp);
-
-  } else {
-    // ── TO PROJECTS ──────────────────────────────────────
-    const COLORS_DASH = ['#1a3a8f','#b0b8c8','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
-    const newProjId   = uid();
-    const color       = COLORS_DASH[projects.length % COLORS_DASH.length];
-
-    const assignments = [];
-    svc.colaboradores.forEach(c => {
-      if (c.name === 'JUNTAS**') return;
-      const empId = _importMapping[c.name];
-      if (!empId) return;
-      const breakdown = (c.actividades||[]).map(a => ({
-        desc: a.desc||'', hrs: a.hrs||0,
-        type: a.tipo==='junta' ? 'junta' : 'produccion',
-        costoAlg: a.costoAlg||0, precioLleno: a.precioLleno||0,
-      }));
-      assignments.push({ empId, hrs: c.hrs||0, costoAlg: c.costoAlg||0, precioLleno: c.precioLleno||0, breakdown });
-    });
-
-    const juntasCollab = svc.colaboradores.find(c => c.name === 'JUNTAS**');
-    const juntasBlock  = juntasCollab && juntasCollab.hrs > 0
-      ? { hrs: juntasCollab.hrs, desc: juntasCollab.actividades?.[0]?.desc||'Meetings', members: assignments.map(a=>a.empId) }
-      : { hrs: 0, desc: '', members: [] };
-
-    (svc.outsourcing||[]).forEach(o => {
-      vendors.push({ id: uid(), name: o.desc||'Outsourcing', projectId: newProjId, cost: o.costo||0, charge: o.precioLleno||0 });
-    });
-
-    projects.push({
-      id: newProjId, name: svc.nombre||d.meta.proyecto, client: d.meta.cliente,
-      type: 'oneshot', income: svc.precioLleno, currency: 'MXN', total: svc.precioLleno,
-      color, juntas: juntasBlock, assignments, _fromCotizador: true,
-      _cotizadorRef: { costoAlg: svc.costoAlg, precioLleno: svc.precioLleno, overhead: d.params.overhead, utilidad: d.params.utilidad },
-    });
-
-    closeModal('import-cot');
-    _importData = null;
-
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-projects').classList.add('active');
-    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
-    Array.from(document.querySelectorAll('header nav button'))
-      .find(b => b.textContent.trim().toUpperCase() === 'PROYECTOS')?.classList.add('active');
-
-    renderAll();
-    setTimeout(() => {
-      const card = document.getElementById('proj-card-' + newProjId);
-      if (card) { card.classList.add('open'); card.scrollIntoView({ behavior:'smooth', block:'center' }); }
-    }, 120);
-    showToast('Proyecto "' + (svc.nombre||d.meta.proyecto) + '" importado ✓');
-    if (SUPABASE_READY) {
-      sbSave('alg_projects', projects[projects.length-1]);
-      vendors.filter(v=>v.projectId===newProjId).forEach(v=>sbSave('alg_vendors',v));
-    }
-  }
+  // Clear and render
+  container.innerHTML = '';
+  const rootRow = document.createElement('div');
+  rootRow.style.cssText = 'display:flex;gap:48px;align-items:flex-start;justify-content:center;flex-wrap:wrap;padding:8px 0';
+  roots.forEach(r => rootRow.appendChild(buildNode(r, 0)));
+  container.appendChild(rootRow);
 }
 
 
-// ══════════════════════════════════════════════════════
-// REPORTE MENSUAL — PDF INTERNO
-// ══════════════════════════════════════════════════════
-function exportMonthlyReport() {
-  const monthVal   = document.getElementById('active-month').value;
-  const monthLabel = monthVal
-    ? new Date(monthVal + '-02').toLocaleDateString('es-MX', { month:'long', year:'numeric' })
-    : new Date().toLocaleDateString('es-MX', { month:'long', year:'numeric' });
-
-  // ── Calculations ──────────────────────────────────────
-  const incomeBase  = totalMonthlyIncomeBase();
-  const incomeIva   = incomeBase * IVA;
-  const incomeTot   = incomeBase + incomeIva;
-  const payrollBase = totalMonthlyPayroll(false);
-  const payrollIva  = payrollBase * IVA;
-  const payrollTot  = payrollBase + payrollIva;
-  const vendorCostT = totalVendorCost();
-  const expTotal    = totalExpenses();
-  const totalEg     = payrollTot + vendorCostT + expTotal;
-  const netMargin   = incomeTot - totalEg;
-  const netMPct     = incomeTot > 0 ? (netMargin / incomeTot * 100).toFixed(1) : '0';
-
-  // ── CSS (built with concatenation to avoid nested template issues) ──
-  const CSS = [
-    '@import url("https://api.fontshare.com/v2/css?f[]=monument-grotesk@400,500,700&display=swap");',
-    '@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap");',
-    '*{box-sizing:border-box;margin:0;padding:0;}',
-    'body{font-family:"Monument Grotesk",sans-serif;color:#0f1117;background:#fff;font-size:11px;padding:32px 40px;max-width:1000px;margin:0 auto;}',
-    'h1{font-size:22px;font-weight:700;letter-spacing:.02em;}',
-    'h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a7f94;margin:28px 0 10px;padding-bottom:6px;border-bottom:2px solid #0f1117;}',
-    '.mono{font-family:"DM Mono",monospace;}',
-    '.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 0;}',
-    '.kpi{background:#f8f7f4;border-radius:8px;padding:14px 16px;}',
-    '.kpi-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a7f94;margin-bottom:5px;}',
-    '.kpi-val{font-family:"DM Mono",monospace;font-size:18px;font-weight:500;line-height:1;}',
-    '.kpi-sub{font-size:8.5px;color:#7a7f94;margin-top:4px;}',
-    '.green{color:#1a6b3c;}.red{color:#e8312a;}.gold{color:#b0b8c8;}',
-    'table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:10.5px;}',
-    'thead tr{background:#0f1117;color:#fff;}',
-    'th{padding:6px 10px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;}',
-    'th.r{text-align:right;}',
-    'td{padding:6px 10px;border-bottom:1px solid #e3e1d8;vertical-align:middle;}',
-    'td.r{text-align:right;font-family:"DM Mono",monospace;font-size:10px;}',
-    'tr:last-child td{border-bottom:none;}',
-    'tr.total-row td{font-weight:700;background:#f2f2f2;border-top:2px solid #0f1117;}',
-    'tr.sub-row td{background:#f8f7f4;font-weight:600;}',
-    '.section-box{border:1px solid #e3e1d8;border-radius:8px;overflow:hidden;margin-bottom:20px;}',
-    '.bar-wrap{background:#e3e1d8;border-radius:3px;height:5px;margin-top:4px;overflow:hidden;}',
-    '.bar-fill{height:100%;border-radius:3px;}',
-    '.pill{display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.03em;}',
-    '.pill-green{background:#e8f4ed;color:#1a6b3c;}',
-    '.pill-blue{background:#e8f0fe;color:#1a3a8f;}',
-    '.pill-gold{background:rgba(176,184,200,.15);color:#b0b8c8;}',
-    '.pill-amber{background:#fff8f0;color:#b45309;}',
-    '.pill-gray{background:#efeee9;color:#7a7f94;}',
-    '.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);}',
-    '.sum-cell{padding:12px 16px;border-right:1px solid #e3e1d8;}',
-    '.sum-cell:last-child{border-right:none;}',
-    '.sum-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a7f94;margin-bottom:4px;}',
-    '.sum-val{font-family:"DM Mono",monospace;font-size:15px;}',
-    '.sum-sub{font-size:8.5px;color:#7a7f94;margin-top:3px;}',
-    '.cap-row{display:grid;grid-template-columns:130px 1fr 60px 50px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #e3e1d8;}',
-    '.cap-row:last-child{border-bottom:none;}',
-    '.footer{margin-top:32px;padding-top:10px;border-top:1px solid #e3e1d8;font-size:9px;color:#7a7f94;display:flex;justify-content:space-between;align-items:center;}',
-    '@media print{body{padding:20px;}@page{margin:15mm;size:A4;}}',
-  ].join('\n');
-
-  // ── 1. Executive Summary ──────────────────────────────
-  const kpiHTML = '<div class="kpi-row">'
-    + '<div class="kpi"><div class="kpi-label">Ingresos totales (c/IVA)</div><div class="kpi-val gold">' + fmt(incomeTot) + '</div><div class="kpi-sub">Base ' + fmt(incomeBase) + ' + IVA ' + fmt(incomeIva) + '</div></div>'
-    + '<div class="kpi"><div class="kpi-label">Egresos totales</div><div class="kpi-val">' + fmt(totalEg) + '</div><div class="kpi-sub">Nómina + proveedores + gastos</div></div>'
-    + '<div class="kpi"><div class="kpi-label">Margen neto</div><div class="kpi-val ' + (netMargin >= 0 ? 'green' : 'red') + '">' + fmt(netMargin) + '</div><div class="kpi-sub">' + netMPct + '% del ingreso total</div></div>'
-    + '<div class="kpi"><div class="kpi-label">Proyectos activos</div><div class="kpi-val">' + projects.length + '</div><div class="kpi-sub">' + employees.length + ' colaboradores</div></div>'
-    + '</div>'
-    + '<div style="margin-top:14px;background:#0f1117;color:#fff;border-radius:8px;overflow:hidden">'
-    + '<div class="sum-grid">'
-    + '<div class="sum-cell"><div class="sum-label" style="color:rgba(255,255,255,.4)">Nómina + IVA</div><div class="sum-val">' + fmt(payrollTot) + '</div><div class="sum-sub" style="color:rgba(255,255,255,.4)">Base ' + fmt(payrollBase) + ' · IVA ' + fmt(payrollIva) + '</div></div>'
-    + '<div class="sum-cell"><div class="sum-label" style="color:rgba(255,255,255,.4)">Gastos operativos</div><div class="sum-val">' + fmt(expTotal) + '</div><div class="sum-sub" style="color:rgba(255,255,255,.4)">' + expenses.length + ' conceptos</div></div>'
-    + '<div class="sum-cell"><div class="sum-label" style="color:rgba(255,255,255,.4)">Proveedores</div><div class="sum-val">' + fmt(vendorCostT) + '</div><div class="sum-sub" style="color:rgba(255,255,255,.4)">' + vendors.length + ' proveedor(es)</div></div>'
-    + '</div></div>';
-
-  // ── 2. Income by project ──────────────────────────────
-  let projRows = '';
-  projects.forEach(function(p) {
-    const inc    = incomeInMXN(p);
-    const incIva = inc * (1 + IVA);
-    const cost   = getProjectTeamCost(p) * (1 + IVA);
-    const vCost  = vendors.filter(function(v){return v.projectId===p.id&&isVendorActive(v);}).reduce(function(s,v){return s+(v.cost||0);},0);
-    const margin = incIva - cost - vCost;
-    const mPct   = incIva > 0 ? (margin/incIva*100).toFixed(1) : '--';
-    const tCls   = p.type==='iguala' ? 'pill-blue' : 'pill-gold';
-    const tLbl   = p.type==='iguala' ? 'Iguala' : 'Único';
-    projRows += '<tr>'
-      + '<td><strong>' + p.name + '</strong><br><span style="font-size:9px;color:#7a7f94">' + (p.client||'') + '</span></td>'
-      + '<td><span class="pill ' + tCls + '">' + tLbl + '</span></td>'
-      + '<td class="r">' + (p.currency==='USD' ? fmtUSD(p.income||0) : '') + '</td>'
-      + '<td class="r">' + fmt(inc) + '</td>'
-      + '<td class="r" style="color:#1a6b3c;font-weight:600">' + fmt(incIva) + '</td>'
-      + '<td class="r">' + fmt(cost) + '</td>'
-      + '<td class="r" style="color:' + (margin>=0?'#1a6b3c':'#e8312a') + ';font-weight:600">' + fmt(margin) + '</td>'
-      + '<td class="r" style="color:' + (margin>=0?'#1a6b3c':'#e8312a') + '">' + (mPct !== '--' ? mPct+'%' : '--') + '</td>'
-      + '</tr>';
-  });
-  const totInc  = projects.reduce(function(s,p){return s+incomeInMXN(p)*(1+IVA);},0);
-  const totCost = projects.reduce(function(s,p){return s+getProjectTeamCost(p)*(1+IVA);},0);
-  const totVend = vendors.reduce(function(s,v){return s+(v.cost||0);},0);
-  const totMarg = totInc - totCost - totVend;
-  const totRow  = '<tr class="total-row"><td colspan="4">TOTAL</td>'
-    + '<td class="r">' + fmt(totInc) + '</td>'
-    + '<td class="r">' + fmt(totCost) + '</td>'
-    + '<td class="r" style="color:' + (totMarg>=0?'#1a6b3c':'#e8312a') + '">' + fmt(totMarg) + '</td>'
-    + '<td class="r">' + (totInc>0?(totMarg/totInc*100).toFixed(1)+'%':'--') + '</td></tr>';
-
-  const incomeHTML = '<div class="section-box"><table>'
-    + '<thead><tr><th>Proyecto</th><th>Tipo</th><th class="r">USD</th><th class="r">Base MXN</th><th class="r">Con IVA</th><th class="r">Costo equipo</th><th class="r">Margen</th><th class="r">%</th></tr></thead>'
-    + '<tbody>' + projRows + '</tbody><tfoot>' + totRow + '</tfoot></table></div>';
-
-  // ── 3. Profitability bars ─────────────────────────────
-  const maxInc2 = Math.max.apply(null, projects.map(function(p){return incomeInMXN(p)*(1+IVA);})) || 1;
-  let profitRows = '';
-  projects.forEach(function(p) {
-    const inc2   = incomeInMXN(p)*(1+IVA);
-    const cost2  = getProjectTeamCost(p)*(1+IVA) + vendors.filter(function(v){return v.projectId===p.id&&isVendorActive(v);}).reduce(function(s,v){return s+(v.cost||0);},0);
-    const margin2= inc2 - cost2;
-    const mPct2  = inc2 > 0 ? (margin2/inc2*100).toFixed(1) : '0';
-    const incW   = (inc2/maxInc2*100).toFixed(1);
-    const costW  = Math.min(cost2/maxInc2*100, 100).toFixed(1);
-    const mCol   = margin2>=0 ? '#1a6b3c' : '#e8312a';
-    profitRows += '<div class="cap-row" style="grid-template-columns:140px 1fr 80px 60px">'
-      + '<div><div style="font-size:10px;font-weight:600">' + p.name + '</div><div style="font-size:8.5px;color:#7a7f94">' + (p.client||'') + '</div></div>'
-      + '<div><div class="bar-wrap" style="height:7px;position:relative">'
-      + '<div class="bar-fill" style="width:' + incW + '%;background:#1a6b3c;position:absolute;top:0;left:0;height:100%"></div>'
-      + '<div class="bar-fill" style="width:' + costW + '%;background:#e8312a;opacity:.45;position:absolute;top:0;left:0;height:100%"></div>'
-      + '</div><div style="display:flex;justify-content:space-between;margin-top:2px"><span style="font-size:8px;color:#1a6b3c">Ingreso ' + fmt(inc2) + '</span><span style="font-size:8px;color:#7a7f94">Costo ' + fmt(cost2) + '</span></div></div>'
-      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;font-weight:600;text-align:right;color:' + mCol + '">' + fmt(margin2) + '</div>'
-      + '<div style="font-size:10px;font-weight:700;text-align:right;color:' + mCol + '">' + mPct2 + '%</div>'
-      + '</div>';
-  });
-  const profitHTML = '<div class="section-box" style="padding:14px 16px">' + (profitRows || '<p style="font-size:10px;color:#7a7f94">Sin proyectos.</p>') + '</div>';
-
-  // ── 4. Payroll ────────────────────────────────────────
-  const corpOnly2  = corporates.filter(function(c){return !c._combined;});
-  const allPeople2 = employees.map(function(e){
-    const isComb = corporates.some(function(c){return c.id===e.id&&c._combined;});
-    return Object.assign({}, e, {_cat: isComb?'combinado':'facturable'});
-  }).concat(corpOnly2.map(function(c){return Object.assign({},c,{_cat:'corporativo'});}));
-
-  let payrollRows = '';
-  allPeople2.forEach(function(p) {
-    const base  = p.salary||0;
-    const iva2  = base * IVA;
-    const total = base + iva2;
-    const hrsA  = p._cat!=='corporativo' ? getEmployeeAssignedHrs(p.id) : 0;
-    const capPct= hrsA > 0 ? (hrsA/CAP*100).toFixed(0)+'%' : '--';
-    const catMap= {facturable:'Facturable',combinado:'Combinado',corporativo:'Corporativo'};
-    const clsMap= {facturable:'pill-green',combinado:'pill-amber',corporativo:'pill-gray'};
-    payrollRows += '<tr>'
-      + '<td><strong>' + p.name + '</strong>' + (p.role ? '<br><span style="font-size:9px;color:#7a7f94">'+p.role+'</span>' : '') + '</td>'
-      + '<td><span class="pill ' + (clsMap[p._cat]||'pill-gray') + '">' + (catMap[p._cat]||p._cat) + '</span></td>'
-      + '<td class="r">' + fmt(base) + '</td>'
-      + '<td class="r" style="color:#b45309">' + fmt(iva2) + '</td>'
-      + '<td class="r" style="font-weight:600">' + fmt(total) + '</td>'
-      + '<td class="r">' + (hrsA>0?hrsA.toFixed(0)+' hrs':'--') + '</td>'
-      + '<td class="r">' + capPct + '</td>'
-      + '</tr>';
-  });
-  const payTotBase = allPeople2.reduce(function(s,p){return s+(p.salary||0);},0);
-  payrollRows += '<tr class="total-row"><td colspan="2">TOTAL NÓMINA</td>'
-    + '<td class="r">' + fmt(payTotBase) + '</td>'
-    + '<td class="r" style="color:#b45309">' + fmt(payTotBase*IVA) + '</td>'
-    + '<td class="r">' + fmt(payTotBase*(1+IVA)) + '</td>'
-    + '<td colspan="2"></td></tr>';
-
-  const payrollHTML = '<div class="section-box"><table>'
-    + '<thead><tr><th>Colaborador</th><th>Tipo</th><th class="r">Honorarios</th><th class="r">IVA 16%</th><th class="r">Total</th><th class="r">Hrs asig.</th><th class="r">% Cap.</th></tr></thead>'
-    + '<tbody>' + payrollRows + '</tbody></table></div>';
-
-  // ── 5. Expenses ───────────────────────────────────────
-  const EXP_LABELS = {suscripcion:'Suscripción',servicios:'Servicios',renta:'Renta',varios:'Varios'};
-  let expRows = '';
-  expenses.forEach(function(e) {
-    const total2 = expenseTotal(e);
-    expRows += '<tr>'
-      + '<td><span class="pill ' + (e.cat==='suscripcion'?'pill-blue':e.cat==='servicios'?'pill-gray':e.cat==='renta'?'pill-gold':'pill-gray') + '">' + (EXP_LABELS[e.cat]||e.cat) + '</span></td>'
-      + '<td>' + (e.desc||'--') + '</td>'
-      + '<td class="r">' + fmt(e.amount||0) + '</td>'
-      + '<td style="text-align:center">' + (e.hasIva?'✓':'') + '</td>'
-      + '<td class="r" style="font-weight:600">' + fmt(total2) + '</td>'
-      + '<td><span class="pill ' + (e.recurrent?'pill-green':'pill-gray') + '">' + (e.recurrent?'Fijo':'Variable') + '</span></td>'
-      + '</tr>';
-  });
-  const expCats = ['suscripcion','servicios','renta','varios'];
-  expCats.forEach(function(cat) {
-    const t3 = totalExpenses(cat);
-    if (!t3) return;
-    const lst = expenses.filter(function(e){return e.cat===cat;});
-    expRows += '<tr class="sub-row"><td>' + (EXP_LABELS[cat]||cat) + '</td><td>' + lst.length + ' concepto(s)</td>'
-      + '<td class="r">' + fmt(lst.reduce(function(s,e){return s+(e.amount||0);},0)) + '</td>'
-      + '<td></td><td class="r">' + fmt(t3) + '</td><td></td></tr>';
-  });
-  expRows += '<tr class="total-row"><td colspan="4">TOTAL GASTOS OPERATIVOS</td><td class="r">' + fmt(expTotal) + '</td><td></td></tr>';
-
-  const expHTML = expenses.length
-    ? '<div class="section-box"><table>'
-      + '<thead><tr><th>Categoría</th><th>Concepto</th><th class="r">Base</th><th style="text-align:center">IVA</th><th class="r">Total</th><th>Tipo</th></tr></thead>'
-      + '<tbody>' + expRows + '</tbody></table></div>'
-    : '<p style="font-size:10px;color:#7a7f94;padding:8px 0">Sin gastos registrados.</p>';
-
-  // ── 6. Team capacity ──────────────────────────────────
-  let capRows = '';
-  employees.forEach(function(emp) {
-    const hrs3   = getEmployeeAssignedHrs(emp.id);
-    const pctMax = hrs3 / CAP_MAX;
-    const color3 = hrs3 > CAP_MAX ? '#e8312a' : hrs3 > CAP ? '#b0b8c8' : '#1a3a8f';
-    capRows += '<div class="cap-row">'
-      + '<div><span style="font-size:10px;font-weight:600">' + emp.name + '</span>' + (emp.role ? '<span style="font-size:8.5px;color:#7a7f94;margin-left:5px">' + emp.role + '</span>' : '') + '</div>'
-      + '<div style="position:relative"><div class="bar-wrap"><div class="bar-fill" style="width:' + Math.min(pctMax,1)*100 + '%;background:' + color3 + '"></div></div></div>'
-      + '<div style="font-family:\'DM Mono\',monospace;font-size:9.5px;text-align:right;color:' + color3 + '">' + hrs3.toFixed(0) + '/' + CAP + 'h</div>'
-      + '<div style="font-size:9px;color:#7a7f94;text-align:right">' + (hrs3/CAP*100).toFixed(0) + '%</div>'
-      + '</div>';
-  });
-  const capHTML = '<div class="section-box" style="padding:14px 16px">'
-    + '<div style="display:flex;gap:16px;margin-bottom:10px">'
-    + '<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#1a3a8f"></div><span style="font-size:8.5px;color:#7a7f94">≤120 hrs</span></div>'
-    + '<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#b0b8c8"></div><span style="font-size:8.5px;color:#7a7f94">121–140 hrs</span></div>'
-    + '<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#e8312a"></div><span style="font-size:8.5px;color:#7a7f94">>140 hrs</span></div>'
-    + '</div>'
-    + (capRows || '<p style="font-size:10px;color:#7a7f94">Sin colaboradores.</p>')
-    + '</div>';
-
-  // ── Assemble ──────────────────────────────────────────
-  const parts = [
-    '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">',
-    '<title>Reporte ALG ' + monthLabel + '</title>',
-    '<style>' + CSS + '</style></head><body>',
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #0f1117">',
-    '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#b0b8c8;margin-bottom:4px">ALG Agency</div>',
-    '<h1>Reporte Mensual</h1><div style="font-size:12px;color:#7a7f94;margin-top:4px;text-transform:capitalize">' + monthLabel + '</div></div>',
-    '<div style="text-align:right;font-size:9px;color:#7a7f94">',
-    '<div>Documento interno — uso exclusivo dirección</div>',
-    '<div style="margin-top:3px">Generado: ' + new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) + '</div>',
-    '<div style="margin-top:3px;font-family:\'DM Mono\',monospace;font-size:8px">TC: $' + getTC().toFixed(2) + ' MXN/USD</div>',
-    '</div></div>',
-    '<h2>1 — Resumen ejecutivo</h2>' + kpiHTML,
-    '<h2>2 — Ingresos por proyecto</h2>' + incomeHTML,
-    '<h2>3 — Rentabilidad por proyecto</h2>' + profitHTML,
-    '<h2>4 — Nómina + IVA por colaborador</h2>' + payrollHTML,
-    '<h2>5 — Gastos operativos</h2>' + expHTML,
-    '<h2>6 — Carga del equipo</h2>' + capHTML,
-    '<div class="footer">',
-    '<span>ALG Agency · Reporte interno · ' + monthLabel + '</span>',
-    '<span style="font-family:\'DM Mono\',monospace">Ingresos ' + fmt(incomeTot) + ' · Egresos ' + fmt(totalEg) + ' · Margen ' + fmt(netMargin) + ' (' + netMPct + '%)</span>',
-    '</div>',
-    '<scr'+'ipt>window.onload=function(){window.print();}<\/scr'+'ipt>',
-    '</body></html>',
-  ];
-  const html = parts.join('\n');
-
-  const w = window.open('', '_blank');
-  if (!w) { showToast('Permite pop-ups para generar el reporte'); return; }
-  w.document.write(html);
-  w.document.close();
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// ══════════════════════════════════════════════════════
-// INIT — datos limpios (cargar desde Supabase)
-// ══════════════════════════════════════════════════════
-const _combined = [];
-
-employees  = [];
-corporates = [];
-projects   = [];
-vendors    = [];
-expenses   = [];
-
-// ── BOOT ──────────────────────────────────────────────
-if (SUPABASE_READY) {
-  loadFromSupabase();
-} else {
-  showSyncStatus('offline');
-  renderAll();
-}
 </script>
 </body>
 </html>
