@@ -3060,8 +3060,13 @@ function openEditEmployee(id, cat) {
   // Descripción
   document.getElementById('ee-description').value = person.description || '';
 
-  updateEePreview();
+  // Open modal first, THEN set select value — avoids browser not reflecting
+  // the value when the element is hidden
   document.getElementById('modal-edit-employee').classList.add('open');
+  requestAnimationFrame(() => {
+    document.getElementById('ee-type').value = typeVal;
+    updateEePreview();
+  });
 }
 
 let _editIsImplant = false;
@@ -3240,22 +3245,27 @@ function deleteEmployee(id) {
 function saveCorporate() {
   const name = document.getElementById('c-name').value.trim();
   if (!name) { showToast('Escribe el nombre'); return; }
-  corporates.push({
-    id:     uid(),
+  const newCorp = {
+    id:       uid(),
     name,
-    role:   document.getElementById('c-role').value.trim(),
-    salary: parseFloat(document.getElementById('c-salary').value) || 0,
-  });
+    role:     document.getElementById('c-role').value.trim(),
+    salary:   parseFloat(document.getElementById('c-salary').value) || 0,
+    _combined: false,
+  };
+  corporates.push(newCorp);
   closeModal('corporate');
   renderAll();
-  showToast(`${name} agregado ✓`);
-  if (SUPABASE_READY) sbSave('alg_corporates', corporates[corporates.length-1]);
+  showToast(name + ' agregado ✓');
+  if (SUPABASE_READY) sbSave('alg_corporates', newCorp);
 }
 
 function deleteCorporate(id) {
+  const c = corporates.find(x => x.id === id);
   corporates = corporates.filter(x => x.id !== id);
+  // If combined, also remove from employees
+  if (c && c._combined) employees = employees.filter(e => e.id !== id);
   renderAll();
-  if (SUPABASE_READY) sbDelete('alg_corporates', id);
+  if (SUPABASE_READY) sbDelete(c && c._combined ? 'alg_employees' : 'alg_corporates', id);
 }
 
 // ── VENDOR CRUD ────────────────────────
