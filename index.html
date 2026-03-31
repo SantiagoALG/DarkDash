@@ -4335,6 +4335,431 @@ function renderOrgChart() {
   container.appendChild(rootRow);
 }
 
+// ── PAGES ──────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('header nav button').forEach(function(b){b.classList.remove('active');});
+  event.target.classList.add('active');
+  if (id==='pipeline') renderPipeline();
+  else renderAll();
+}
+
+// ── TOAST ──────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════════════
+// IMPORT COTIZACIÓN → DASHBOARD
+// ══════════════════════════════════════════════════════
+let _importData    = null;
+let _importMapping = {};
+let _importDest    = 'project';
+
+function fuzzyMatch(cotName, empList) {
+  const norm = s => s.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]/g,' ').trim();
+  const cn = norm(cotName);
+  let best = null, bestScore = 0;
+  empList.forEach(emp => {
+    const en = norm(emp.name);
+    const cnWords = cn.split(' ');
+    const enWords = en.split(' ');
+    let score = 0;
+    cnWords.forEach(cw => enWords.forEach(ew => {
+      if (cw.length > 2 && ew.length > 2) {
+        if (cw === ew) score += 3;
+        else if (cw.startsWith(ew) || ew.startsWith(cw)) score += 2;
+        else if (cw.includes(ew) || ew.includes(cw)) score += 1;
+      }
+    }));
+    if (score > bestScore) { bestScore = score; best = emp; }
+  });
+  return bestScore > 0 ? best : null;
+}
+
+function importCotizacion(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data._version !== 'alg-cotizador-v1') throw new Error('Formato no reconocido');
+      _importData = data;
+      openImportModal();
+    } catch(err) {
+      showToast('Error al leer el archivo: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function setImportDest(dest) {
+  _importDest = dest;
+  const projBtn    = document.getElementById('import-dest-project');
+  const plBtn      = document.getElementById('import-dest-pipeline');
+  const projFld    = document.getElementById('import-project-fields');
+  const plFld      = document.getElementById('import-pipeline-fields');
+  const confBtn    = document.getElementById('import-confirm-btn');
+  const outsrcTitle= document.getElementById('import-outsrc-title');
+  if (dest === 'project') {
+    projBtn.style.borderColor = 'rgba(38,166,91,.5)';
+    projBtn.style.background  = 'rgba(38,166,91,.15)';
+    plBtn.style.borderColor   = 'rgba(255,255,255,.1)';
+    plBtn.style.background    = 'rgba(255,255,255,.04)';
+    if (projFld)     projFld.style.display    = 'block';
+    if (plFld)       plFld.style.display      = 'none';
+    if (confBtn)     { confBtn.textContent = '✅ Crear proyecto'; confBtn.style.background = 'var(--green)'; }
+    if (outsrcTitle) outsrcTitle.textContent  = 'Proveedores a crear';
+  } else {
+    plBtn.style.borderColor   = 'rgba(100,144,220,.5)';
+    plBtn.style.background    = 'rgba(100,144,220,.12)';
+    projBtn.style.borderColor = 'rgba(255,255,255,.1)';
+    projBtn.style.background  = 'rgba(255,255,255,.04)';
+    if (projFld)     projFld.style.display    = 'none';
+    if (plFld)       plFld.style.display      = 'block';
+    const ownerSel = document.getElementById('import-pl-owner');
+    if (ownerSel) {
+      ownerSel.innerHTML = '<option value="">— Sin asignar —</option>'
+        + employees.map(e => '<option value="' + e.id + '">' + e.name + '</option>').join('');
+    }
+    if (confBtn)     { confBtn.textContent = '🔵 Agregar al pipeline'; confBtn.style.background = '#6490dc'; }
+    if (outsrcTitle) outsrcTitle.textContent  = 'Proveedores estimados (incluidos en la oportunidad)';
+  }
+}
+
+function openImportModal() {
+  const d = _importData;
+  if (!d) return;
+  _importDest = 'project';
+  setImportDest('project');
+  document.getElementById('import-meta').innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'
+    + '<div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Cliente</div><strong>' + d.meta.cliente + '</strong></div>'
+    + '<div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Proyecto</div><strong>' + d.meta.proyecto + '</strong></div>'
+    + '<div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)">Fecha</div>' + d.meta.fecha + '</div>'
+    + '</div>'
+    + '<div style="margin-top:8px;display:flex;gap:16px;font-size:.78rem;color:var(--ink-soft)">'
+    + '<span>Overhead: <strong>' + d.params.overhead + '</strong></span>'
+    + '<span>Utilidad: <strong>' + (d.params.utilidad*100).toFixed(0) + '%</strong></span>'
+    + '<span>Dcto: <strong>' + (d.params.descuento*100).toFixed(0) + '%</strong></span>'
+    + '<span>Hrs totales: <strong>' + d.totales.hrs + '</strong></span>'
+    + '</div>';
+  const svcWrap = document.getElementById('import-svc-wrap');
+  const svcSel  = document.getElementById('import-svc-select');
+  if (d.servicios.length > 1) {
+    svcWrap.style.display = 'block';
+    svcSel.innerHTML = d.servicios.map((s,i) =>
+      '<option value="' + i + '">' + s.nombre + ' (' + s.hrsTotal + ' hrs · ' + fmt(s.precioLleno) + ')</option>'
+    ).join('') + '<option value="all">— Todos los servicios como un proyecto —</option>';
+  } else {
+    svcWrap.style.display = 'none';
+  }
+  renderImportMapping();
+  document.getElementById('modal-import-cot').classList.add('open');
+}
+
+function getSelectedServicio() {
+  const d   = _importData;
+  const sel = document.getElementById('import-svc-select');
+  if (!sel || d.servicios.length === 1) return d.servicios[0];
+  const val = sel.value;
+  if (val === 'all') {
+    const merged = { nombre: d.meta.proyecto, hrsTotal: 0, costoAlg: 0, precioLleno: 0, colaboradores: [], outsourcing: [] };
+    d.servicios.forEach(s => {
+      merged.hrsTotal    += s.hrsTotal;
+      merged.costoAlg    += s.costoAlg;
+      merged.precioLleno += s.precioLleno;
+      merged.outsourcing  = merged.outsourcing.concat(s.outsourcing || []);
+      s.colaboradores.forEach(c => {
+        const ex = merged.colaboradores.find(x => x.name === c.name);
+        if (ex) {
+          ex.hrs += c.hrs; ex.costoAlg += c.costoAlg; ex.precioLleno += c.precioLleno;
+          ex.actividades = ex.actividades.concat(c.actividades || []);
+        } else {
+          merged.colaboradores.push({...c, actividades: [...(c.actividades||[])]});
+        }
+      });
+    });
+    return merged;
+  }
+  return d.servicios[parseInt(val)];
+}
+
+
+function setImportMap(sel, name) {
+  _importMapping[name] = sel.value ? parseInt(sel.value) : null;
+}
+
+function renderImportMapping() {
+  const svc = getSelectedServicio();
+  _importMapping = {};
+  svc.colaboradores.forEach(c => {
+    if (c.name === 'JUNTAS**') { _importMapping[c.name] = '__juntas__'; return; }
+    const match = fuzzyMatch(c.name, employees);
+    _importMapping[c.name] = match ? match.id : null;
+  });
+  const container = document.getElementById('import-mapping');
+  container.innerHTML = svc.colaboradores.map(c => {
+    const mapped   = _importMapping[c.name];
+    const isJunta  = c.name === 'JUNTAS**';
+    const matchEmp = mapped && !isJunta ? employees.find(e => e.id === mapped) : null;
+    const confidence = matchEmp ? '✓ Auto' : (isJunta ? '⏱' : '⚠ Sin match');
+    const confColor  = matchEmp ? 'var(--green)' : isJunta ? 'var(--amber)' : 'var(--accent-2)';
+    const opts = employees.map(e =>
+      '<option value="' + e.id + '"' + (e.id === mapped ? ' selected' : '') + '>'
+      + e.name + (e.role ? ' · ' + e.role : '') + '</option>'
+    ).join('');
+    const inputCell = isJunta
+      ? '<span style="font-size:.78rem;color:var(--amber);font-style:italic">Distribuidas como ⏱ Junta</span>'
+      : '<select data-cname="' + c.name.replace(/"/g,'&quot;') + '" onchange="setImportMap(this)"'
+        + ' style="border:none;background:transparent;font-family:var(--sans);font-size:.8rem;width:100%;cursor:pointer">'
+        + '<option value="">— Sin asignar —</option>' + opts + '</select>';
+    return '<div style="display:grid;grid-template-columns:140px 1fr 100px 80px;gap:0;border:1.5px solid var(--paper-3);border-radius:6px;overflow:hidden;align-items:center">'
+      + '<div style="padding:8px 10px;border-right:1px solid var(--paper-2);font-weight:600;font-size:.82rem">' + c.name + '</div>'
+      + '<div style="padding:4px 8px;border-right:1px solid var(--paper-2)">' + inputCell + '</div>'
+      + '<div style="padding:8px 10px;border-right:1px solid var(--paper-2);font-family:var(--mono);font-size:.78rem;text-align:right">' + c.hrs.toFixed(0) + ' hrs</div>'
+      + '<div style="padding:8px 10px;font-size:.72rem;font-weight:700;color:' + confColor + ';text-align:center">' + confidence + '</div>'
+      + '</div>';
+  }).join('');
+  const oWrap = document.getElementById('import-outsrc-wrap');
+  const oList = document.getElementById('import-outsrc-list');
+  if (svc.outsourcing && svc.outsourcing.length) {
+    oWrap.style.display = 'block';
+    oList.innerHTML = svc.outsourcing.map(o =>
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border:1.5px solid var(--paper-3);border-radius:5px;margin-bottom:5px;font-size:.82rem">'
+      + '<span>📦 ' + o.desc + '</span>'
+      + '<span style="font-family:var(--mono);color:var(--amber)">Costo: ' + fmt(o.costo) + ' · Markup: ' + o.markup + '%</span>'
+      + '</div>'
+    ).join('');
+  } else { oWrap.style.display = 'none'; }
+  document.getElementById('import-income-preview').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+    + '<div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--green);font-weight:700;margin-bottom:2px">Ingreso que entra al Dashboard</div>'
+    + '<div style="font-family:var(--mono);font-size:1.2rem;font-weight:700;color:var(--green)">' + fmt(svc.precioLleno) + '</div>'
+    + '<div style="font-size:.72rem;color:var(--ink-soft)">Precio sin descuento · IVA se agrega en Dashboard</div></div>'
+    + '<div style="text-align:right">'
+    + '<div style="font-size:.72rem;color:var(--ink-soft)">Costo ALG: <span style="font-family:var(--mono)">' + fmt(svc.costoAlg) + '</span></div>'
+    + '<div style="font-size:.72rem;color:var(--ink-soft)">' + svc.hrsTotal + ' hrs totales</div>'
+    + '</div></div>';
+}
+
+function setImportMap(sel) {
+  const name = sel.dataset.cname;
+  _importMapping[name] = sel.value ? parseInt(sel.value) : null;
+}
+
+
+
+function confirmImportCotizacion() {
+  const d   = _importData;
+  const svc = getSelectedServicio();
+  if (!d || !svc) return;
+
+  if (_importDest === 'pipeline') {
+    const stage     = document.getElementById('import-pl-stage')?.value || 'propuesta';
+    const prob      = parseInt(document.getElementById('import-pl-prob')?.value) || 60;
+    const closeDate = document.getElementById('import-pl-date')?.value || null;
+    const ownerId   = parseInt(document.getElementById('import-pl-owner')?.value) || null;
+    const vendorLines = (svc.outsourcing||[]).map(o =>
+      (o.desc||'Proveedor') + ': ' + fmt(o.costo||0) + ' cobro ' + fmt(o.precioLleno||0));
+    const opp = {
+      id: uid(), name: svc.nombre||d.meta.proyecto, client: d.meta.cliente,
+      stage, prob, closeDate, ownerId, value: svc.precioLleno,
+      service: svc.nombre||d.meta.proyecto,
+      notes: ['Importado del Cotizador.',
+        'Overhead: '+d.params.overhead+'x Utilidad: '+(d.params.utilidad*100).toFixed(0)+'%',
+        vendorLines.length ? 'Proveedores: '+vendorLines.join(' | ') : ''].filter(Boolean).join(' '),
+      _fromCot: true,
+    };
+    pipeline.push(opp);
+    closeModal('import-cot');
+    _importData = null;
+    renderAll();
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-pipeline').classList.add('active');
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    Array.from(document.querySelectorAll('header nav button'))
+      .find(b => b.textContent.trim().toUpperCase() === 'PIPELINE')
+      ?.classList.add('active');
+    setPipelineView(_plView);
+    showToast(opp.name + ' agregado al pipeline');
+    if (SUPABASE_READY) sbSave('alg_pipeline', opp);
+
+  } else {
+    const COLORS_DASH = ['#1a3a8f','#b0b8c8','#e8312a','#1a6b3c','#b45309','#6d28d9','#0e7490','#9d174d'];
+    const newProjId = uid();
+    const color = COLORS_DASH[projects.length % COLORS_DASH.length];
+    const assignments = [];
+    svc.colaboradores.forEach(c => {
+      if (c.name === 'JUNTAS**') return;
+      const empId = _importMapping[c.name];
+      if (!empId) return;
+      const breakdown = (c.actividades||[]).map(a => ({
+        desc: a.desc||'', hrs: a.hrs||0,
+        type: a.tipo === 'junta' ? 'junta' : 'produccion',
+        costoAlg: a.costoAlg||0, precioLleno: a.precioLleno||0,
+      }));
+      assignments.push({ empId, hrs: c.hrs||0, costoAlg: c.costoAlg||0, precioLleno: c.precioLleno||0, breakdown });
+    });
+    const juntasCollab = svc.colaboradores.find(c => c.name === 'JUNTAS**');
+    const juntasBlock  = juntasCollab && juntasCollab.hrs > 0
+      ? { hrs: juntasCollab.hrs, desc: juntasCollab.actividades?.[0]?.desc||'Meetings', members: assignments.map(a=>a.empId) }
+      : { hrs: 0, desc: '', members: [] };
+    (svc.outsourcing||[]).forEach(o => {
+      vendors.push({ id: uid(), name: o.desc||'Outsourcing', projectId: newProjId, cost: o.costo||0, charge: o.precioLleno||0 });
+    });
+    projects.push({
+      id: newProjId, name: svc.nombre||d.meta.proyecto, client: d.meta.cliente,
+      type: 'oneshot', income: svc.precioLleno, currency: 'MXN', total: svc.precioLleno,
+      color, juntas: juntasBlock, assignments, _fromCotizador: true,
+      _cotizadorRef: { costoAlg: svc.costoAlg, precioLleno: svc.precioLleno, overhead: d.params.overhead, utilidad: d.params.utilidad },
+    });
+    closeModal('import-cot');
+    _importData = null;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-projects').classList.add('active');
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    Array.from(document.querySelectorAll('header nav button'))
+      .find(b => b.textContent.trim().toUpperCase() === 'PROYECTOS')
+      ?.classList.add('active');
+    renderAll();
+    setTimeout(() => {
+      const card = document.getElementById('proj-card-' + newProjId);
+      if (card) { card.classList.add('open'); card.scrollIntoView({ behavior:'smooth', block:'center' }); }
+    }, 120);
+    showToast('Proyecto ' + (svc.nombre||d.meta.proyecto) + ' importado');
+    if (SUPABASE_READY) {
+      sbSave('alg_projects', projects[projects.length-1]);
+      vendors.filter(v => v.projectId === newProjId).forEach(v => sbSave('alg_vendors', v));
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// REPORTE MENSUAL — PDF INTERNO
+// ══════════════════════════════════════════════════════
+function exportMonthlyReport() {
+  const monthVal   = document.getElementById('active-month').value;
+  const monthLabel = monthVal
+    ? new Date(monthVal + '-02').toLocaleDateString('es-MX', { month:'long', year:'numeric' })
+    : new Date().toLocaleDateString('es-MX', { month:'long', year:'numeric' });
+  const incomeBase  = totalMonthlyIncomeBase();
+  const incomeIva   = incomeBase * IVA;
+  const incomeTot   = incomeBase + incomeIva;
+  const payrollBase = totalMonthlyPayroll(false);
+  const payrollIva  = payrollBase * IVA;
+  const payrollTot  = payrollBase + payrollIva;
+  const vendorCostT = totalVendorCost();
+  const expTotal    = totalExpenses();
+  const totalEg     = payrollTot + vendorCostT + expTotal;
+  const netMargin   = incomeTot - totalEg;
+  const netMPct     = incomeTot > 0 ? (netMargin / incomeTot * 100).toFixed(1) : '0';
+
+  const w = window.open('', '_blank');
+  if (!w) { showToast('Permite pop-ups para generar el reporte'); return; }
+
+  const CSS = 'body{font-family:sans-serif;color:#0f1117;background:#fff;font-size:11px;padding:32px 40px;max-width:1000px;margin:0 auto;}'
+    + 'h1{font-size:22px;font-weight:700;margin-bottom:4px;}'
+    + 'h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a7f94;margin:28px 0 10px;padding-bottom:6px;border-bottom:2px solid #0f1117;}'
+    + 'table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:10.5px;}'
+    + 'thead tr{background:#0f1117;color:#fff;}'
+    + 'th{padding:6px 10px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;}'
+    + 'th.r{text-align:right;} td{padding:6px 10px;border-bottom:1px solid #e3e1d8;vertical-align:middle;}'
+    + 'td.r{text-align:right;font-size:10px;}'
+    + 'tr.total-row td{font-weight:700;background:#f2f2f2;border-top:2px solid #0f1117;}'
+    + '.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0;}'
+    + '.kpi{background:#f8f7f4;border-radius:8px;padding:14px 16px;}'
+    + '.kpi-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a7f94;margin-bottom:5px;}'
+    + '.kpi-val{font-size:18px;font-weight:500;line-height:1;} .green{color:#1a6b3c;} .red{color:#e8312a;}'
+    + '.footer{margin-top:32px;padding-top:10px;border-top:1px solid #e3e1d8;font-size:9px;color:#7a7f94;display:flex;justify-content:space-between;}';
+
+  const kpiHTML = '<div class="kpi-row">'
+    + '<div class="kpi"><div class="kpi-label">Ingresos totales (c/IVA)</div><div class="kpi-val">' + fmt(incomeTot) + '</div></div>'
+    + '<div class="kpi"><div class="kpi-label">Egresos totales</div><div class="kpi-val">' + fmt(totalEg) + '</div></div>'
+    + '<div class="kpi"><div class="kpi-label">Margen neto</div><div class="kpi-val ' + (netMargin>=0?'green':'red') + '">' + fmt(netMargin) + '</div><div style="font-size:8.5px;color:#7a7f94">' + netMPct + '%</div></div>'
+    + '<div class="kpi"><div class="kpi-label">Proyectos activos</div><div class="kpi-val">' + projects.length + '</div></div>'
+    + '</div>';
+
+  let projRows = '';
+  projects.forEach(function(p) {
+    const inc    = incomeInMXN(p) * (1+IVA);
+    const cost   = getProjectTeamCost(p) * (1+IVA);
+    const vCost  = vendors.filter(v=>v.projectId===p.id&&isVendorActive(v)).reduce((s,v)=>s+(v.cost||0),0);
+    const margin = inc - cost - vCost;
+    projRows += '<tr><td><strong>' + p.name + '</strong></td><td>' + (p.client||'') + '</td>'
+      + '<td class="r">' + fmt(inc) + '</td><td class="r">' + fmt(cost) + '</td>'
+      + '<td class="r" style="color:' + (margin>=0?'#1a6b3c':'#e8312a') + ';font-weight:600">' + fmt(margin) + '</td>'
+      + '<td class="r">' + (inc>0?(margin/inc*100).toFixed(1)+'%':'--') + '</td></tr>';
+  });
+
+  let payRows = '';
+  const allPpl = [...employees, ...corporates.filter(c=>!c._combined)];
+  allPpl.forEach(p => {
+    const base = p.salary||0;
+    payRows += '<tr><td><strong>' + p.name + '</strong></td><td>' + (p.role||'') + '</td>'
+      + '<td class="r">' + fmt(base) + '</td>'
+      + '<td class="r">' + fmt(base*IVA) + '</td>'
+      + '<td class="r" style="font-weight:600">' + fmt(base*(1+IVA)) + '</td></tr>';
+  });
+  const payTotBase = allPpl.reduce((s,p)=>s+(p.salary||0),0);
+  payRows += '<tr class="total-row"><td colspan="2">TOTAL</td><td class="r">' + fmt(payTotBase) + '</td>'
+    + '<td class="r">' + fmt(payTotBase*IVA) + '</td>'
+    + '<td class="r">' + fmt(payTotBase*(1+IVA)) + '</td></tr>';
+
+  let expRows = '';
+  expenses.forEach(e => {
+    const t = expenseTotal(e);
+    expRows += '<tr><td>' + (e.cat||'') + '</td><td>' + (e.desc||'') + '</td>'
+      + '<td class="r">' + fmt(e.amount||0) + '</td>'
+      + '<td class="r">' + fmt(t) + '</td></tr>';
+  });
+  if (expenses.length) {
+    expRows += '<tr class="total-row"><td colspan="3">TOTAL GASTOS</td><td class="r">' + fmt(expTotal) + '</td></tr>';
+  }
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    + '<title>Reporte ALG ' + monthLabel + '</title>'
+    + '<style>' + CSS + '</style></head><body>'
+    + '<div style="display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #0f1117">'
+    + '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#b0b8c8;margin-bottom:4px">ALG Agency</div>'
+    + '<h1>Reporte Mensual</h1>'
+    + '<div style="font-size:12px;color:#7a7f94;text-transform:capitalize">' + monthLabel + '</div></div>'
+    + '<div style="text-align:right;font-size:9px;color:#7a7f94">'
+    + '<div>Documento interno — uso exclusivo dirección</div>'
+    + '<div>Generado: ' + new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) + '</div>'
+    + '<div>TC: $' + getTC().toFixed(2) + ' MXN/USD</div></div></div>'
+    + '<h2>1 — Resumen ejecutivo</h2>' + kpiHTML
+    + '<h2>2 — Ingresos por proyecto</h2>'
+    + '<table><thead><tr><th>Proyecto</th><th>Cliente</th><th class="r">Ingreso c/IVA</th><th class="r">Costo equipo</th><th class="r">Margen</th><th class="r">%</th></tr></thead>'
+    + '<tbody>' + projRows + '</tbody></table>'
+    + '<h2>3 — Nómina + IVA</h2>'
+    + '<table><thead><tr><th>Colaborador</th><th>Rol</th><th class="r">Honorarios</th><th class="r">IVA 16%</th><th class="r">Total</th></tr></thead>'
+    + '<tbody>' + payRows + '</tbody></table>'
+    + (expenses.length
+        ? '<h2>4 — Gastos operativos</h2>'
+          + '<table><thead><tr><th>Categoría</th><th>Concepto</th><th class="r">Base</th><th class="r">Total</th></tr></thead>'
+          + '<tbody>' + expRows + '</tbody></table>'
+        : '')
+    + '<div class="footer">'
+    + '<span>ALG Agency · Reporte interno · ' + monthLabel + '</span>'
+    + '<span>Ingresos ' + fmt(incomeTot) + ' · Egresos ' + fmt(totalEg) + ' · Margen ' + fmt(netMargin) + ' (' + netMPct + '%)</span>'
+    + '</div>'
+    + '<scr' + 'ipt>window.onload=function(){window.print();}<\/scr' + 'ipt>'
+    + '</body></html>';
+
+  w.document.write(html);
+  w.document.close();
+}
+
 
 </script>
 </body>
