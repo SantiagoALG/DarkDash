@@ -3335,21 +3335,25 @@ function deleteExpense(id) {
 }
 
 function updateExpense(id, field, value) {
-  // `id` may be a stale local id (1000000+) if sbSave already replaced it
-  // with a real Supabase id. Find by both old and new id.
   const exp = expenses.find(e => e.id === id) || expenses.find(e => e._localId === id);
   if (!exp) return;
-  if (field === 'cat')       exp.cat      = value;
-  if (field === 'desc')      exp.desc     = value;
-  if (field === 'amount')    exp.amount   = parseFloat(value) || 0;
-  if (field === 'hasIva')    exp.hasIva   = value;
-  if (field === 'recurrent') exp.recurrent= value;
-  renderExpensesPage();
-  renderDashboard();
+  if (field === 'cat')       exp.cat       = value;
+  if (field === 'desc')      exp.desc      = value;
+  if (field === 'amount')    exp.amount    = parseFloat(value) || 0;
+  if (field === 'hasIva')    exp.hasIva    = value;
+  if (field === 'recurrent') exp.recurrent = value;
+
+  // Only re-render when a value that affects totals changes.
+  // For free-text fields (desc) skip the re-render entirely to avoid
+  // destroying the focused input on every keystroke.
+  const affectsTotals = (field === 'amount' || field === 'hasIva' || field === 'cat' || field === 'recurrent');
+  if (affectsTotals) {
+    renderExpensesPage();
+    renderDashboard();
+  }
+
   if (SUPABASE_READY) {
     clearTimeout(exp._syncTimer);
-    // Capture the expense object reference — by the time the timer fires,
-    // exp.id will already be the real Supabase id (updated by sbSave POST)
     exp._syncTimer = setTimeout(() => sbSave('alg_expenses', exp), 1200);
   }
 }
