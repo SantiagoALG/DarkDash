@@ -1629,7 +1629,7 @@ async function loadFromSupabase() {
 function stripLocalFields(record) {
   if (!record || typeof record !== 'object') return {};
   const clean = { ...record };
-  ['_open','_showBd','_fromCotizador','_fromCot','_cat'].forEach(k => delete clean[k]);
+  ['_open','_showBd','_fromCotizador','_fromCot','_cat','_localId','_syncTimer'].forEach(k => delete clean[k]);
   return clean;
 }
 
@@ -3316,7 +3316,8 @@ const EXP_CATS = [
 ];
 
 function addExpenseRow() {
-  const newExp = { id: uid(), cat:'suscripcion', desc:'', amount:0, hasIva:true, recurrent:true };
+  const localId = uid();
+  const newExp = { id: localId, _localId: localId, cat:'suscripcion', desc:'', amount:0, hasIva:true, recurrent:true };
   expenses.push(newExp);
   renderExpensesPage();
   renderDashboard();
@@ -3324,14 +3325,19 @@ function addExpenseRow() {
 }
 
 function deleteExpense(id) {
-  expenses = expenses.filter(e => e.id !== id);
+  // Find real Supabase id before removing from array
+  const exp = expenses.find(e => e.id === id) || expenses.find(e => e._localId === id);
+  const realId = exp ? exp.id : id;
+  expenses = expenses.filter(e => e.id !== id && e._localId !== id);
   renderExpensesPage();
   renderDashboard();
-  if (SUPABASE_READY) sbDelete('alg_expenses', id);
+  if (SUPABASE_READY) sbDelete('alg_expenses', realId);
 }
 
 function updateExpense(id, field, value) {
-  const exp = expenses.find(e => e.id === id);
+  // `id` may be a stale local id (1000000+) if sbSave already replaced it
+  // with a real Supabase id. Find by both old and new id.
+  const exp = expenses.find(e => e.id === id) || expenses.find(e => e._localId === id);
   if (!exp) return;
   if (field === 'cat')       exp.cat      = value;
   if (field === 'desc')      exp.desc     = value;
@@ -3341,11 +3347,10 @@ function updateExpense(id, field, value) {
   renderExpensesPage();
   renderDashboard();
   if (SUPABASE_READY) {
-    clearTimeout(window._expSyncTimer);
-    window._expSyncTimer = setTimeout(() => {
-      const e = expenses.find(x=>x.id===id);
-      if (e) sbSave('alg_expenses', e);
-    }, 1200);
+    clearTimeout(exp._syncTimer);
+    // Capture the expense object reference — by the time the timer fires,
+    // exp.id will already be the real Supabase id (updated by sbSave POST)
+    exp._syncTimer = setTimeout(() => sbSave('alg_expenses', exp), 1200);
   }
 }
 
