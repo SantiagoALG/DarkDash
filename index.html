@@ -4760,7 +4760,18 @@ function exportMonthlyReport() {
   w.document.close();
 }
 
+// ══════════════════════════════════════════════════════
+// INIT — boot
+// ══════════════════════════════════════════════════════
+document.getElementById('active-month').value =
+  new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
 
+if (SUPABASE_READY) {
+  loadFromSupabase();
+} else {
+  showSyncStatus('offline');
+  renderAll();
+}
 </script>
 </body>
 </html>
