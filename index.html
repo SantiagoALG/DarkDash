@@ -897,6 +897,22 @@ select { cursor: pointer; }
       <p>Sin empleados corporativos.</p>
     </div>
   </div>
+  <!-- Org chart toggle -->
+  <div style="margin-top:28px">
+    <button onclick="toggleOrgChart()" id="org-toggle-btn"
+      class="btn-add outline" style="font-size:.78rem;padding:8px 18px;margin-bottom:16px">
+      🏢 Ver organigrama
+    </button>
+    <div id="org-chart-wrap" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Organigrama ALG</span>
+          <span style="font-size:.72rem;color:var(--ink-soft)" id="org-subtitle"></span>
+        </div>
+        <div id="org-chart-container" style="padding:28px 20px;overflow-x:auto;min-height:200px"></div>
+      </div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -1300,6 +1316,21 @@ select { cursor: pointer; }
     <span id="ee-precio-iva-preview" style="display:none"></span>
     <span id="ee-overhead-label"     style="display:none">1.5×</span>
     <span id="ee-util-label"         style="display:none">50%</span>
+    <!-- Reporta a + Descripción -->
+    <div class="separator"></div>
+    <div class="field-group">
+      <label>Reporta a</label>
+      <select id="ee-reports-to" style="appearance:auto">
+        <option value="">— Nadie (nivel raíz) —</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Descripción del puesto / Actividades</label>
+      <textarea id="ee-description" rows="3"
+        placeholder="Ej. Responsable de estrategia de marca, supervisión de cuentas clave, presentaciones a clientes…"
+        style="resize:vertical;min-height:72px;font-family:var(--sans);font-size:.82rem"></textarea>
+    </div>
+
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('edit-employee')">Cancelar</button>
       <button class="btn-save" onclick="saveEditEmployee()">Guardar cambios</button>
@@ -2499,6 +2530,7 @@ function renderEmployees() {
     }).join('');
   }
   document.getElementById('emp-count').textContent = employees.length ? '(' + employees.length + ')' : '';
+  if (_orgVisible) renderOrgChart();
 
   const ctbody = document.getElementById('corp-tbody');
   const cempty = document.getElementById('corp-empty');
@@ -3015,6 +3047,19 @@ function openEditEmployee(id, cat) {
   if (cat === 'corporate') typeVal = person._combined ? 'combined' : 'corporate';
   document.getElementById('ee-type').value = typeVal;
 
+  // Reporta a — populate dropdown with all employees except self
+  const rSel = document.getElementById('ee-reports-to');
+  const allPpl = [...employees, ...corporates.filter(c => !c._combined)];
+  rSel.innerHTML = '<option value="">— Nadie (nivel raíz) —</option>'
+    + allPpl
+        .filter(p => p.id !== id)
+        .map(p => '<option value="' + p.id + '"' + (person.reportsTo === p.id ? ' selected' : '') + '>'
+          + p.name + (p.role ? ' — ' + p.role : '') + '</option>')
+        .join('');
+
+  // Descripción
+  document.getElementById('ee-description').value = person.description || '';
+
   updateEePreview();
   document.getElementById('modal-edit-employee').classList.add('open');
 }
@@ -3123,9 +3168,11 @@ function saveEditEmployee() {
   const corpHrs     = parseFloat(document.getElementById('ee-corp-hrs')?.value) || 0;
   const avatarColor = document.getElementById('ee-avatar-color')?.value || null;
 
+  const reportsTo   = parseInt(document.getElementById('ee-reports-to').value) || null;
+  const description = document.getElementById('ee-description').value.trim() || null;
   const base = { id: _editEmpId, name, role, salary, overhead, util,
                  implant: _editIsImplant, _combined: isCombined,
-                 corpHrs, avatarColor };
+                 corpHrs, avatarColor, reportsTo, description };
 
   if (isBillable)  employees.push({...base});
   // Combined employees appear in corporates array locally (derived from employees)
@@ -4104,6 +4151,106 @@ function loadPipelineFromRows(rows) {
   }).filter(Boolean);
 }
 
+
+
+// ══════════════════════════════════════════════════════
+// ORG CHART
+// ══════════════════════════════════════════════════════
+let _orgVisible = false;
+
+function toggleOrgChart() {
+  _orgVisible = !_orgVisible;
+  const wrap = document.getElementById('org-chart-wrap');
+  const btn  = document.getElementById('org-toggle-btn');
+  wrap.style.display = _orgVisible ? 'block' : 'none';
+  btn.textContent    = _orgVisible ? '🏢 Ocultar organigrama' : '🏢 Ver organigrama';
+  if (_orgVisible) renderOrgChart();
+}
+
+function renderOrgChart() {
+  const container = document.getElementById('org-chart-container');
+  const subtitle  = document.getElementById('org-subtitle');
+  const allPpl    = [
+    ...employees,
+    ...corporates.filter(c => !c._combined),
+  ];
+
+  if (!allPpl.length) {
+    container.innerHTML = '<p style="color:var(--ink-soft);font-size:.82rem">Sin colaboradores registrados.</p>';
+    return;
+  }
+
+  subtitle.textContent = allPpl.length + ' colaboradores';
+
+  // Build tree: find roots (no reportsTo or reportsTo not found)
+  const ids = new Set(allPpl.map(p => p.id));
+  const roots = allPpl.filter(p => !p.reportsTo || !ids.has(p.reportsTo));
+  const children = id => allPpl.filter(p => p.reportsTo === id);
+
+  // Node card HTML
+  function nodeCard(person) {
+    const av   = makeAvatar(person.name, '', person.avatarColor);
+    const type = person._combined ? 'combinado' : (employees.find(e=>e.id===person.id) ? 'facturable' : 'corporativo');
+    const typeColor = type==='facturable' ? 'var(--accent)' : type==='combinado' ? 'var(--amber)' : 'var(--ink-soft)';
+    const kids = children(person.id);
+
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:0">'
+      // Node box
+      + '<div style="'
+        + 'background:rgba(255,255,255,.06);'
+        + 'border:1px solid rgba(255,255,255,.12);'
+        + 'border-top:2px solid ' + typeColor + ';'
+        + 'border-radius:10px;padding:14px 16px;'
+        + 'min-width:160px;max-width:200px;'
+        + 'text-align:center;position:relative;'
+        + 'box-shadow:0 4px 16px rgba(0,0,0,.3);">'
+        + '<div style="display:flex;justify-content:center;margin-bottom:8px">' + av + '</div>'
+        + '<div style="font-weight:700;font-size:.85rem;color:var(--ink);margin-bottom:2px">' + person.name + '</div>'
+        + (person.role ? '<div style="font-size:.7rem;color:var(--ink-soft);margin-bottom:6px">' + person.role + '</div>' : '')
+        + (person.description
+            ? '<div style="font-size:.68rem;color:var(--ink-soft);line-height:1.4;border-top:1px solid rgba(255,255,255,.07);padding-top:6px;margin-top:2px;text-align:left">'
+              + person.description.slice(0,120) + (person.description.length>120?'…':'')
+              + '</div>'
+            : '')
+        + '<span style="position:absolute;top:6px;right:8px;font-size:.55rem;font-weight:700;'
+          + 'color:' + typeColor + ';text-transform:uppercase;letter-spacing:.05em">' + type + '</span>'
+      + '</div>'
+      // Connector + children
+      + (kids.length ? (
+          // vertical line down
+          '<div style="width:2px;height:24px;background:rgba(255,255,255,.15)"></div>'
+          // horizontal bar + children row
+          + '<div style="display:flex;flex-direction:column;align-items:center">'
+          + (kids.length > 1
+              ? '<div style="display:flex;align-items:flex-start;gap:0">'
+                + kids.map((k, ki) => {
+                    const isFirst = ki === 0;
+                    const isLast  = ki === kids.length - 1;
+                    const isMid   = !isFirst && !isLast;
+                    return '<div style="display:flex;flex-direction:column;align-items:center">'
+                      + '<div style="height:2px;background:rgba(255,255,255,.15);'
+                        + 'width:' + (isFirst||isLast ? '50%' : '100%') + ';'
+                        + 'align-self:' + (isFirst ? 'flex-end' : isLast ? 'flex-start' : 'stretch') + '">'
+                      + '</div>'
+                      + '<div style="width:2px;height:20px;background:rgba(255,255,255,.15)"></div>'
+                      + nodeCard(k)
+                      + '</div>';
+                  }).join('')
+                + '</div>'
+              : nodeCard(kids[0])
+            )
+          + '</div>'
+        ) : '')
+      + '</div>';
+  }
+
+  // Render root nodes side by side
+  const html = '<div style="display:flex;gap:40px;align-items:flex-start;justify-content:center;flex-wrap:wrap">'
+    + roots.map(r => nodeCard(r)).join('')
+    + '</div>';
+
+  container.innerHTML = html;
+}
 
 // ── PAGES ──────────────────────────────
 function showPage(id) {
